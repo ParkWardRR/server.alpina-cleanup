@@ -240,6 +240,35 @@ sudo systemctl restart observability-stack
 
 ---
 
+## Phase 7: Server Landing Pages (2026-02-05)
+
+### Go-Based Landing Pages
+Deployed custom Go landing pages with beautiful dark-themed designs, historical metrics from Prometheus, and service-specific information.
+
+| Server | URL | Features |
+|--------|-----|----------|
+| NTP (ntp.alpina) | http://ntp.alpina:8080 | CPU/Memory charts, chrony sync status, NTP sources table |
+| Komga (komga.alpina) | http://komga.alpina (port 80) | CPU/Memory charts, system stats, link to Komga UI |
+
+### Technical Details
+- Language: Go (compiled for Linux amd64)
+- Charts: 30-day historical data via Prometheus API
+- Design: Dark gradient theme with glassmorphism effects
+- Service: systemd landing-page.service
+- Port binding: setcap cap_net_bind_service for privileged ports
+
+### NTP Landing Page Features
+- Real-time chrony statistics (stratum, offset, drift)
+- NTP source table with status indicators
+- Historical CPU/memory usage from Prometheus
+
+### Komga Landing Page Features
+- Server resource utilization
+- Direct link to Komga UI (port 25600)
+- 30-day CPU and memory trends
+
+---
+
 ## Change Log
 
 | Date | Change | Author |
@@ -261,3 +290,6 @@ sudo systemctl restart observability-stack
 | 2026-02-05 | Enhanced Alloy with structured log parsing | Claude |
 | 2026-02-05 | Deployed pve-exporter for Proxmox VM metrics | Claude |
 | 2026-02-05 | Created Proxmox VMs dashboard with per-VM stats | Claude |
+| 2026-02-05 | Deployed Go-based landing page on NTP server (port 8080) | Claude |
+| 2026-02-05 | Deployed Go-based landing page on Komga server (port 80) | Claude |
+| 2026-02-05 | Fixed komga.alpina node_exporter firewall (UFW port 9100) | Claude |

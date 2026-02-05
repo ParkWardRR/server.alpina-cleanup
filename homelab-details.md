@@ -111,6 +111,9 @@ ssh alfa@sentinella.alpina
 **OS:** AlmaLinux 10.1
 **Service:** Chrony 4.6.1 (Stratum 2)
 
+### Web Access
+- **Landing Page:** http://ntp.alpina:8080 - Server stats + NTP sync status
+
 ### Time Sources (8 configured)
 - NIST: time-d-wwv.nist.gov (Stratum 1)
 - Google: time.google.com, time1-3.google.com (Stratum 1)
@@ -137,11 +140,16 @@ ssh alfa@sentinella.alpina
 **OS:** Debian 12 (bookworm)
 **Service:** Komga 1.19.1 (Docker)
 
+### Web Access
+- **Landing Page:** http://komga.alpina (port 80) - Server stats dashboard
+- **Komga UI:** http://komga.alpina:25600 - Media library
+
 ### Configuration
-- Port: 25600 (web UI)
+- Landing: Go-based stats page with 30-day historical CPU/memory charts
 - Data: /mnt/MonterosaSync-Read (NFS mount)
 - Config: /home/alfa/komga/config
 - Library: 78 series, 660 books
+- Node Exporter: port 9100 (Prometheus metrics)
 
 ### Status
 See [komga-remediation-plan.md](komga-remediation-plan.md) for pending hardening tasks.
