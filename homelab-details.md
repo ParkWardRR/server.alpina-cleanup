@@ -155,16 +155,23 @@ See [komga-remediation-plan.md](komga-remediation-plan.md) for pending hardening
 **Runtime:** Podman 5.6.0
 
 ### Observability Stack
+- **Landing Page:** https://sentinella.alpina - Portal with links to all services
 - **Grafana:** https://grafana.sentinella.alpina - Dashboards
 - **Prometheus:** https://prometheus.sentinella.alpina - Metrics
 - **Loki:** https://loki.sentinella.alpina - Logs
 - **Alloy:** https://alloy.sentinella.alpina - Telemetry collector
 - **Syslog:** sentinella.alpina:1514/udp
 
+### Log Sources (Configured)
+- Proxmox (aria.alpina) - rsyslog forwarding
+- Pi-hole - rsyslog forwarding
+- OPNsense (gateway) - configure via web UI
+
 ### Configuration
 - Reverse proxy: Caddy with internal TLS
 - Data persistence: Podman volumes
 - Systemd service: observability-stack.service
+- Grafana dashboard: Homelab Infrastructure Logs (pre-provisioned)
 
 ### Status
 See [sentinella-observability-deployment.md](sentinella-observability-deployment.md) for full deployment details and credentials.
