@@ -9,6 +9,7 @@ Configuration and documentation for the Alpina homelab network.
 | Firewall | gateway.alpina | 172.16.16.16 |
 | DNS/Ad-block | pihole | 172.16.66.66 |
 | NTP | ntp.alpina | 172.16.16.108 |
+| Komga | komga.alpina | 172.16.16.202 |
 
 ## SSH Access
 

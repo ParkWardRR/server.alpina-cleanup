@@ -7,6 +7,7 @@
 | OPNsense | gateway.alpina | 172.16.16.16 | Firewall/Router |
 | Pi-hole | pihole | 172.16.66.66 | DNS/Ad-blocking |
 | NTP Server | ntp.alpina | 172.16.16.108 | Time synchronization |
+| Komga | komga.alpina | 172.16.16.202 | Media server (comics) |
 
 ## Network Topology
 
@@ -26,8 +27,8 @@ Internet
 |  LAN (172.16.0.0/16)                                      |
 |                                                           |
 |  +-------------+  +-------------+  +-------------+        |
-|  |  Pi-hole    |  | NTP Server  |  |   Clients   |        |
-|  | .66.66      |  | .16.108     |  |   Various   |        |
+|  |  Pi-hole    |  | NTP Server  |  |   Komga     |        |
+|  | .66.66      |  | .16.108     |  | .16.202     |        |
 |  +-------------+  +-------------+  +-------------+        |
 +-----------------------------------------------------------+
 ```
@@ -43,6 +44,9 @@ ssh -i ~/.ssh/id_ed25519 pi@pihole
 
 # NTP time server
 ssh -i ~/.ssh/id_ed25519 alfa@ntp.alpina
+
+# Komga media server
+ssh -i ~/.ssh/id_ed25519_komga_alpina alfa@komga.alpina
 ```
 
 ---
@@ -120,3 +124,20 @@ ssh -i ~/.ssh/id_ed25519 alfa@ntp.alpina
 ```
 /var/backups/ntp/pre-remediation-20260127_132804.tar.gz
 ```
+
+---
+
+## Komga (komga.alpina)
+
+**Hardware:** Proxmox VE VM (4 vCPU Intel N100, 4.2GB RAM, 392GB disk)
+**OS:** Debian 12 (bookworm)
+**Service:** Komga 1.19.1 (Docker)
+
+### Configuration
+- Port: 25600 (web UI)
+- Data: /mnt/MonterosaSync-Read (NFS mount)
+- Config: /home/alfa/komga/config
+- Library: 78 series, 660 books
+
+### Status
+See [komga-remediation-plan.md](komga-remediation-plan.md) for pending hardening tasks.
