@@ -304,6 +304,13 @@ echo "<14>Test message from CLI" | nc -u sentinella.alpina 1514
 - Application logs
 - Request patterns
 
+### Proxmox VMs
+- **UID:** proxmox-vms
+- VM Overview table with status, CPU, Memory, Disk, Network
+- CPU/Memory usage over time (per VM)
+- Network and Disk I/O (per VM)
+- Resource allocation summaries
+
 ---
 
 ## Configured Log Sources
@@ -343,6 +350,28 @@ cat /etc/rsyslog.d/50-remote.conf
 cat /etc/rsyslog.d/50-remote.conf
 # *.* @172.16.19.94:1514
 ```
+
+---
+
+## PVE Exporter (Proxmox VM Metrics)
+
+Prometheus PVE Exporter is installed on the Proxmox host for per-VM metrics.
+
+| Setting | Value |
+|---------|-------|
+| Host | aria.alpina |
+| Port | 9221 |
+| Config | /etc/pve-exporter/pve.yml |
+| API Token | root@pam!prometheus |
+
+Metrics collected include:
+- pve_cpu_usage_ratio - CPU utilization per VM
+- pve_memory_usage_bytes / pve_memory_size_bytes - Memory usage
+- pve_disk_size_bytes - Disk allocation
+- pve_network_receive/transmit_bytes_total - Network I/O
+- pve_disk_read/written_bytes_total - Disk I/O
+- pve_uptime_seconds - VM uptime
+- pve_guest_info - VM names and metadata
 
 ---
 

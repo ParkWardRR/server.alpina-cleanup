@@ -163,6 +163,49 @@ Created comprehensive Grafana dashboard with:
 
 ---
 
+## Phase 6: Proxmox VM Metrics (2026-02-05)
+
+### PVE Exporter Deployment
+Installed prometheus-pve-exporter on aria.alpina (Proxmox host) for per-VM metrics.
+
+```bash
+# Installation
+pip3 install prometheus-pve-exporter --break-system-packages
+
+# API Token created
+pveum user token add root@pam prometheus --privsep=0
+
+# Configuration at /etc/pve-exporter/pve.yml
+# Systemd service at /etc/systemd/system/pve-exporter.service
+# Listening on port 9221
+```
+
+### VMs Monitored
+| VM ID | Name | Type |
+|-------|------|------|
+| 100 | Sentinella | QEMU |
+| 101 | ezMaster | QEMU |
+| 102 | Gotra | QEMU |
+| 103 | Komga | QEMU |
+| 105 | syncthings | QEMU |
+| 106 | qacache | QEMU |
+| 107 | Scriptwright | QEMU |
+| 109 | Ottavia | QEMU |
+| 110 | NTP | QEMU |
+
+### Proxmox VMs Dashboard
+Created comprehensive dashboard (uid: proxmox-vms) with:
+- VM Overview table (Status, CPU%, Memory%, Disk, Uptime, Network)
+- CPU Usage by VM (time series)
+- Memory Usage by VM (time series)
+- Memory Usage bar gauge (current)
+- Disk Allocation bar gauge
+- Network I/O by VM
+- Disk I/O by VM
+- Summary stats (Total Memory, Total Disk, Running VMs)
+
+---
+
 ## Access Credentials
 
 ### Grafana
@@ -216,3 +259,5 @@ sudo systemctl restart observability-stack
 | 2026-02-05 | Deployed node_exporter to all Linux hosts | Claude |
 | 2026-02-05 | Created System Metrics dashboard | Claude |
 | 2026-02-05 | Enhanced Alloy with structured log parsing | Claude |
+| 2026-02-05 | Deployed pve-exporter for Proxmox VM metrics | Claude |
+| 2026-02-05 | Created Proxmox VMs dashboard with per-VM stats | Claude |
