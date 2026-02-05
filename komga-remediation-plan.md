@@ -4,6 +4,8 @@
 **OS:** Debian 12 (bookworm)
 **Hardware:** Proxmox VM - 4 vCPU, 4.2GB RAM, 392GB disk
 **Assessment Date:** 2026-02-04
+**Remediation Date:** 2026-02-04
+**Status:** ✅ COMPLETE
 
 ---
 
@@ -11,18 +13,39 @@
 
 | Category | Status | Priority |
 |----------|--------|----------|
-| Komga Service | ❌ Down (8 months) | CRITICAL |
-| NFS Mount | ❌ Missing | CRITICAL |
-| Firewall | ❌ None | HIGH |
-| SSH Hardening | ⚠️ Partial | HIGH |
-| Auto Updates | ❌ Not configured | HIGH |
-| Fail2ban | ❌ Not installed | MEDIUM |
+| Komga Service | ✅ Running (v1.24.1) | CRITICAL |
+| NFS Mount | ✅ Mounted & Persistent | CRITICAL |
+| Firewall | ✅ UFW Configured | HIGH |
+| SSH Hardening | ✅ Hardened | HIGH |
+| Auto Updates | ✅ Configured | HIGH |
+| Fail2ban | ✅ Active | MEDIUM |
+| OS Updates | ✅ Updated (kernel 6.1.0-42) | HIGH |
 | Tailscale | ⚠️ Logged out | LOW |
-| Time Sync | ✅ Working | - |
+| Time Sync | ✅ Using local NTP | - |
 
 ---
 
-## Critical Issues
+## Execution Summary
+
+All remediation tasks completed successfully on 2026-02-04:
+
+1. ✅ **System Updates** - Updated to kernel 6.1.0-42, all packages current
+2. ✅ **NFS Mount** - Mounted portocali:/volume2/MonterosaSync/Storage/Other/Read, added to fstab
+3. ✅ **Komga Restored** - Container started, running healthy
+4. ✅ **Komga Updated** - Upgraded from v1.19.1 → v1.24.1 (latest)
+5. ✅ **Firewall (UFW)** - Installed, configured, active
+   - SSH allowed from anywhere
+   - Komga (25600) restricted to LAN (172.16.0.0/16)
+6. ✅ **SSH Hardened** - Password auth disabled, root login disabled, X11 disabled
+7. ✅ **Fail2ban** - Installed, configured for SSH protection
+8. ✅ **Auto-Updates** - Unattended-upgrades configured for security updates
+9. ✅ **Local NTP** - Configured to use ntp.alpina (172.16.16.108)
+
+**Server Grade:** A (upgraded from F)
+
+---
+
+## Critical Issues (RESOLVED)
 
 ### 1. Komga Container Down (8 months)
 
@@ -300,3 +323,67 @@ df -h /mnt/MonterosaSync-Read
 | Docker | Installed |
 | Komga | v1.19.1 (stopped) |
 | Uptime | 28 minutes |
+
+---
+
+## Post-Remediation Verification
+
+**Verification Date:** 2026-02-04 23:07 PST
+
+### Service Status
+
+```
+Komga:          Running (v1.24.1) - HTTP 200 OK
+Docker:         Container healthy, 78 series, 660 books accessible
+Firewall:       UFW active - SSH + Komga (LAN only)
+Fail2ban:       Active - 1 jail (sshd) monitoring
+SSH:            Hardened - password auth disabled, root login disabled
+NFS Mount:      32TB share mounted at /mnt/MonterosaSync-Read
+Auto-Updates:   Enabled - unattended-upgrades.service active
+NTP:            Synced to 172.16.16.108 (ntp.alpina)
+```
+
+### Resource Usage
+
+```
+CPU Load:       1.69 (1 min average)
+Memory:         1.0GB / 4.2GB used (24%)
+Disk:           3.5GB / 392GB used (1%)
+Uptime:         42 minutes
+```
+
+### Security Posture
+
+| Control | Status |
+|---------|--------|
+| Firewall | ✅ UFW active, restrictive rules |
+| SSH Password Auth | ✅ Disabled |
+| SSH Root Login | ✅ Disabled |
+| Fail2ban | ✅ Monitoring SSH |
+| Auto-Updates | ✅ Security updates enabled |
+| Unnecessary Services | ✅ Removed/disabled |
+
+### Access Information
+
+```bash
+# Web UI
+http://komga.alpina:25600
+http://172.16.16.202:25600
+
+# SSH
+ssh -i ~/.ssh/id_ed25519_komga_alpina alfa@komga.alpina
+
+# Docker
+docker ps | grep komga
+docker logs -f komga
+```
+
+---
+
+## Maintenance Notes
+
+- Komga will auto-scan library hourly
+- Automatic security updates will install daily
+- NFS mount configured with `_netdev,nofail` for reliability
+- Container restart policy: `unless-stopped`
+- Reboot recommended within 24h to load new kernel (6.1.0-42)
