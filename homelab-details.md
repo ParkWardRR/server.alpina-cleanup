@@ -8,6 +8,7 @@
 | Pi-hole | pihole | 172.16.66.66 | DNS/Ad-blocking |
 | NTP Server | ntp.alpina | 172.16.16.108 | Time synchronization |
 | Komga | komga.alpina | 172.16.16.202 | Media server (comics) |
+| Sentinella | sentinella.alpina | 172.16.19.94 | Monitoring (Grafana/Prometheus/Loki) |
 
 ## Network Topology
 
@@ -47,6 +48,9 @@ ssh -i ~/.ssh/id_ed25519 alfa@ntp.alpina
 
 # Komga media server
 ssh -i ~/.ssh/id_ed25519_komga_alpina alfa@komga.alpina
+
+# Sentinella monitoring
+ssh alfa@sentinella.alpina
 ```
 
 ---
@@ -141,3 +145,26 @@ ssh -i ~/.ssh/id_ed25519_komga_alpina alfa@komga.alpina
 
 ### Status
 See [komga-remediation-plan.md](komga-remediation-plan.md) for pending hardening tasks.
+
+---
+
+## Sentinella (sentinella.alpina)
+
+**Hardware:** Proxmox VE VM (4 vCPU, 8GB RAM, 70GB disk)
+**OS:** AlmaLinux 10.1 (Heliotrope Lion)
+**Runtime:** Podman 5.6.0
+
+### Observability Stack
+- **Grafana:** https://grafana.alpina - Dashboards
+- **Prometheus:** https://prometheus.alpina - Metrics
+- **Loki:** https://loki.alpina - Logs
+- **Alloy:** https://alloy.alpina - Telemetry collector
+- **Syslog:** sentinella.alpina:1514/udp
+
+### Configuration
+- Reverse proxy: Caddy with internal TLS
+- Data persistence: Podman volumes
+- Systemd service: observability-stack.service
+
+### Status
+See [sentinella-observability-deployment.md](sentinella-observability-deployment.md) for full deployment details and credentials.
