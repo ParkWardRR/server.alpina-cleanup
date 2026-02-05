@@ -256,19 +256,61 @@ echo "<14>Test message from CLI" | nc -u sentinella.alpina 1514
 
 ---
 
-## Sending Logs to the Stack
+## Landing Page
+
+- **URL:** https://sentinella.alpina
+- Beautiful dark-themed landing page with links to all services
+- Shows system info, log sources, and status
+
+---
+
+## Grafana Dashboard
+
+**Dashboard:** Homelab Infrastructure Logs
+- Pre-provisioned via `/opt/observability/grafana/provisioning/`
+- Includes:
+  - Logs by Host pie chart
+  - Log volume over time
+  - Errors & Warnings panel
+  - Authentication events
+  - Pi-hole DNS logs
+  - All logs stream
+
+---
+
+## Configured Log Sources
+
+### Proxmox (aria.alpina) ✅
+```bash
+# rsyslog installed and configured
+cat /etc/rsyslog.d/50-remote.conf
+# *.* @sentinella.alpina:1514
+```
+
+### Pi-hole ✅
+```bash
+# rsyslog installed and configured
+cat /etc/rsyslog.d/50-remote.conf
+# *.* @sentinella.alpina:1514
+```
+
+### OPNsense (172.16.16.16) - Manual Setup Required
+System → Settings → Logging/Targets → Add:
+- Transport: UDP(4)
+- Host: sentinella.alpina
+- Port: 1514
+- Facility: (all or specific)
+- Level: (all or specific)
+
+---
+
+## Sending Logs from Other Devices
 
 ### From Linux (rsyslog)
-Add to `/etc/rsyslog.conf`:
+```bash
+echo '*.* @sentinella.alpina:1514' | sudo tee /etc/rsyslog.d/50-remote.conf
+sudo systemctl restart rsyslog
 ```
-*.* @sentinella.alpina:1514
-```
-
-### From OPNsense
-System → Settings → Logging → Remote → Add:
-- Remote server: sentinella.alpina
-- Port: 1514
-- Protocol: UDP
 
 ### From Network Devices
 Configure syslog destination: `172.16.19.94:1514 UDP`
