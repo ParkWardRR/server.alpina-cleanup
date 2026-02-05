@@ -155,10 +155,10 @@ See [komga-remediation-plan.md](komga-remediation-plan.md) for pending hardening
 **Runtime:** Podman 5.6.0
 
 ### Observability Stack
-- **Grafana:** https://grafana.alpina - Dashboards
-- **Prometheus:** https://prometheus.alpina - Metrics
-- **Loki:** https://loki.alpina - Logs
-- **Alloy:** https://alloy.alpina - Telemetry collector
+- **Grafana:** https://grafana.sentinella.alpina - Dashboards
+- **Prometheus:** https://prometheus.sentinella.alpina - Metrics
+- **Loki:** https://loki.sentinella.alpina - Logs
+- **Alloy:** https://alloy.sentinella.alpina - Telemetry collector
 - **Syslog:** sentinella.alpina:1514/udp
 
 ### Configuration

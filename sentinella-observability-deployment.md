@@ -13,25 +13,25 @@
 | Service | Purpose | Internal Port | External Access |
 |---------|---------|---------------|-----------------|
 | Caddy | Reverse proxy + TLS | 80, 443 | https://*.alpina |
-| Grafana | Dashboards & visualization | 3000 | https://grafana.alpina |
-| Prometheus | Metrics collection | 9090 | https://prometheus.alpina |
-| Loki | Log aggregation | 3100 | https://loki.alpina |
-| Alloy | Telemetry collector | 12345, 1514/udp | https://alloy.alpina |
+| Grafana | Dashboards & visualization | 3000 | https://grafana.sentinella.alpina |
+| Prometheus | Metrics collection | 9090 | https://prometheus.sentinella.alpina |
+| Loki | Log aggregation | 3100 | https://loki.sentinella.alpina |
+| Alloy | Telemetry collector | 12345, 1514/udp | https://alloy.sentinella.alpina |
 
 ---
 
 ## Access URLs & Credentials
 
 ### Grafana (Main Dashboard)
-- **URL:** https://grafana.alpina
+- **URL:** https://grafana.sentinella.alpina
 - **Username:** admin
 - **Password:** `sG8pF8JcGVl4BypmiPy/j06HgMcPda41`
 
 ### Prometheus, Loki, Alloy (Basic Auth)
 - **URLs:**
-  - https://prometheus.alpina
-  - https://loki.alpina
-  - https://alloy.alpina
+  - https://prometheus.sentinella.alpina
+  - https://loki.sentinella.alpina
+  - https://alloy.sentinella.alpina
 - **Username:** admin
 - **Password:** `vURLumGa0GMu4/nR2+vejcenAQBqt1un`
 
@@ -114,10 +114,10 @@ cd /opt/observability
 ### Phase 10: Add DNS Entries
 ```bash
 # Added to Pi-hole custom.list:
-172.16.19.94 grafana.alpina
-172.16.19.94 prometheus.alpina
-172.16.19.94 loki.alpina
-172.16.19.94 alloy.alpina
+172.16.19.94 grafana.sentinella.alpina
+172.16.19.94 prometheus.sentinella.alpina
+172.16.19.94 loki.sentinella.alpina
+172.16.19.94 alloy.sentinella.alpina
 172.16.19.94 sentinella.alpina
 ```
 
@@ -210,16 +210,16 @@ cd /opt/observability
 podman ps
 
 # Test Grafana
-curl -k https://grafana.alpina/api/health
+curl -k https://grafana.sentinella.alpina/api/health
 
 # Test Prometheus
-curl -k -u admin:PASSWORD https://prometheus.alpina/-/healthy
+curl -k -u admin:PASSWORD https://prometheus.sentinella.alpina/-/healthy
 
 # Test Loki
-curl -k -u admin:PASSWORD https://loki.alpina/ready
+curl -k -u admin:PASSWORD https://loki.sentinella.alpina/ready
 
 # Test Alloy
-curl -k -u admin:PASSWORD https://alloy.alpina/-/ready
+curl -k -u admin:PASSWORD https://alloy.sentinella.alpina/-/ready
 
 # Test syslog ingest
 echo "<14>Test message from CLI" | nc -u sentinella.alpina 1514
