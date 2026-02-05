@@ -294,13 +294,27 @@ cat /etc/rsyslog.d/50-remote.conf
 # *.* @sentinella.alpina:1514
 ```
 
-### OPNsense (172.16.16.16) - Manual Setup Required
-System → Settings → Logging/Targets → Add:
-- Transport: UDP(4)
-- Host: sentinella.alpina
-- Port: 1514
-- Facility: (all or specific)
-- Level: (all or specific)
+### OPNsense (gateway) ✅
+```bash
+# Configured via /etc/syslog.d/sentinella.conf
+ssh root@172.16.16.16
+cat /etc/syslog.d/sentinella.conf
+# *.*    @172.16.19.94:1514
+```
+
+### NTP Server (ntp.alpina) ✅
+```bash
+# rsyslog configured
+cat /etc/rsyslog.d/50-remote.conf
+# *.* @172.16.19.94:1514
+```
+
+### Gotra Application ✅
+```bash
+# rsyslog configured for system + container logs
+cat /etc/rsyslog.d/50-remote.conf
+# *.* @172.16.19.94:1514
+```
 
 ---
 
@@ -319,8 +333,8 @@ Configure syslog destination: `172.16.19.94:1514 UDP`
 
 ## Maintenance Notes
 
-- Prometheus retains data for 30 days
-- Loki does not have retention enabled (unlimited storage)
+- Prometheus retains data for 24 months (730 days)
+- Loki retains data for 24 months (17520 hours)
 - Containers restart automatically on failure
 - Stack starts on boot via systemd
 - TLS certificates are self-signed (browser warning expected)
