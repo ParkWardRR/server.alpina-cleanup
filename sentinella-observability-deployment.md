@@ -264,17 +264,45 @@ echo "<14>Test message from CLI" | nc -u sentinella.alpina 1514
 
 ---
 
-## Grafana Dashboard
+## Grafana Dashboards
 
-**Dashboard:** Homelab Infrastructure Logs
-- Pre-provisioned via `/opt/observability/grafana/provisioning/`
-- Includes:
-  - Logs by Host pie chart
-  - Log volume over time
-  - Errors & Warnings panel
-  - Authentication events
-  - Pi-hole DNS logs
-  - All logs stream
+### Homelab Infrastructure Logs
+- **UID:** homelab-logs
+- Logs by Host pie chart
+- Log volume over time
+- Errors & Warnings panel
+- Authentication events
+- Pi-hole DNS logs
+- All logs stream
+
+### Homelab Overview
+- **UID:** homelab-overview
+- Summary of all systems
+- Quick health indicators
+
+### System Metrics
+- **UID:** system-metrics
+- CPU Usage (all hosts)
+- Memory Usage (all hosts)
+- Network I/O (rx/tx)
+- Disk I/O (read/write)
+- Disk Usage bar gauge
+- Host Summary table
+
+### NTP Time Synchronization
+- **UID:** ntp-sync
+- Time sync status
+- Chrony source details
+
+### OPNsense Firewall Security
+- **UID:** opnsense-security
+- Firewall events
+- Blocked/allowed traffic
+
+### Gotra Application
+- **UID:** gotra-app
+- Application logs
+- Request patterns
 
 ---
 
@@ -315,6 +343,28 @@ cat /etc/rsyslog.d/50-remote.conf
 cat /etc/rsyslog.d/50-remote.conf
 # *.* @172.16.19.94:1514
 ```
+
+---
+
+## Node Exporter (System Metrics)
+
+All Linux hosts have Prometheus node_exporter installed for system metrics collection.
+
+| Host | Port | Status |
+|------|------|--------|
+| sentinella.alpina | 9100 | ✅ Active |
+| ntp.alpina | 9100 | ✅ Active |
+| gotra | 9100 | ✅ Active |
+| aria.alpina (Proxmox) | 9100 | ✅ Active |
+| pihole | 9100 | ✅ Active |
+
+Metrics collected include:
+- CPU usage per core and total
+- Memory usage and availability
+- Disk I/O and space usage
+- Network I/O (bytes/packets)
+- System load averages
+- Uptime
 
 ---
 

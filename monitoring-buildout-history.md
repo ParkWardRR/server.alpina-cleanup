@@ -109,6 +109,60 @@ Updated `/etc/pihole/pihole.toml` hosts array:
 
 ---
 
+## Phase 5: System Metrics with Node Exporter (2026-02-05)
+
+### Node Exporter Deployment
+Deployed Prometheus node_exporter to all Linux hosts for comprehensive system metrics:
+
+| Host | Method | Port | Status |
+|------|--------|------|--------|
+| sentinella.alpina | Manual binary + systemd | 9100 | ✅ Active |
+| ntp.alpina | Manual binary + systemd | 9100 | ✅ Active |
+| gotra | Manual binary + systemd | 9100 | ✅ Active |
+| aria.alpina (Proxmox) | apt package | 9100 | ✅ Active |
+| pihole | apt package | 9100 | ✅ Active |
+
+### Installation Steps
+```bash
+# For AlmaLinux hosts (manual binary)
+wget https://github.com/prometheus/node_exporter/releases/download/v1.9.0/node_exporter-1.9.0.linux-amd64.tar.gz
+tar xzf node_exporter-*.tar.gz
+sudo mv node_exporter-*/node_exporter /usr/local/bin/
+# Created systemd service at /etc/systemd/system/node_exporter.service
+
+# For Debian hosts (apt package)
+sudo apt install prometheus-node-exporter
+```
+
+### Firewall Configuration
+Opened port 9100/tcp on all hosts to allow Prometheus scraping.
+
+### Prometheus Configuration
+Added node scrape job to `/opt/observability/prometheus/prometheus.yml`:
+```yaml
+- job_name: node
+  static_configs:
+    - targets:
+        - sentinella.alpina:9100
+        - ntp.alpina:9100
+        - gotra:9100
+        - aria.alpina:9100
+        - pihole:9100
+      labels:
+        env: homelab
+```
+
+### System Metrics Dashboard
+Created comprehensive Grafana dashboard with:
+- CPU Usage over time (per host)
+- Memory Usage over time (per host)
+- Network I/O (rx/tx per host)
+- Disk I/O (read/write per host)
+- Disk Usage bar gauge
+- Host Summary table with CPU%, Memory%, Disk%, Uptime, Load
+
+---
+
 ## Access Credentials
 
 ### Grafana
@@ -159,3 +213,6 @@ sudo systemctl restart observability-stack
 | 2026-02-05 | Added NTP, OPNsense, Gotra, Overview dashboards | Claude |
 | 2026-02-05 | Increased retention to 24 months | Claude |
 | 2026-02-05 | Landing page storage stats & predictions | Claude |
+| 2026-02-05 | Deployed node_exporter to all Linux hosts | Claude |
+| 2026-02-05 | Created System Metrics dashboard | Claude |
+| 2026-02-05 | Enhanced Alloy with structured log parsing | Claude |

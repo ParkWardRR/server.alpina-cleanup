@@ -18,24 +18,46 @@ A comprehensive observability platform providing real-time insights into the Alp
 ### Log Sources Active
 - [x] Proxmox (aria.alpina)
 - [x] Pi-hole DNS server
+- [x] OPNsense firewall
+- [x] NTP server (chrony)
+- [x] Gotra application server
+
+### Metrics Sources Active
+- [x] Node exporter on all Linux hosts (5 hosts)
+- [x] Prometheus self-monitoring
+- [x] Grafana metrics
+- [x] Loki metrics
+- [x] Alloy metrics
 
 ---
 
-## Short Term (v1.1) - In Progress
+## Short Term (v1.1) - COMPLETED ✅
 
 ### Log Source Expansion
-- [ ] OPNsense firewall logs
-- [ ] NTP server (chrony) logs
-- [ ] Gotra application server
-  - [ ] Gunicorn access/error logs
-  - [ ] Celery worker logs
-  - [ ] Redis logs
+- [x] OPNsense firewall logs
+- [x] NTP server (chrony) logs
+- [x] Gotra application server
+  - [x] System logs via rsyslog
+  - [x] Gunicorn access/error logs
+  - [x] Celery worker logs
 
 ### Dashboard Improvements
-- [ ] NTP Time Sync Dashboard
-- [ ] Firewall Security Dashboard
-- [ ] Application Performance Dashboard
-- [ ] Home page with health overview
+- [x] NTP Time Sync Dashboard
+- [x] Firewall Security Dashboard (OPNsense)
+- [x] Application Performance Dashboard (Gotra)
+- [x] Home page with health overview
+- [x] System Metrics Dashboard
+
+### Data Retention
+- [x] Configured 24-month retention for Prometheus
+- [x] Configured 24-month retention for Loki
+
+### Structured Log Parsing (Alloy)
+- [x] OPNsense filterlog parsing
+- [x] SSH authentication parsing
+- [x] NTP chrony parsing
+- [x] Celery task parsing
+- [x] Pi-hole DNS parsing
 
 ### Alerting
 - [ ] Grafana alerting rules
@@ -53,7 +75,7 @@ A comprehensive observability platform providing real-time insights into the Alp
 - [ ] UPS status logs
 
 ### Metrics Expansion
-- [ ] Node exporter on all Linux hosts
+- [x] Node exporter on all Linux hosts
 - [ ] cAdvisor for container metrics
 - [ ] Custom application metrics
 - [ ] Network bandwidth monitoring
@@ -91,7 +113,8 @@ A comprehensive observability platform providing real-time insights into the Alp
 ## Technical Debt
 
 ### High Priority
-- [ ] Enable Loki retention policy (currently unlimited)
+- [x] Enable Loki retention policy (24 months)
+- [x] Enable Prometheus retention policy (24 months)
 - [ ] Add health checks to all containers
 - [ ] Implement log rotation on source systems
 - [ ] Document backup procedures
@@ -113,10 +136,11 @@ A comprehensive observability platform providing real-time insights into the Alp
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Log ingestion rate | >1000 msg/min | TBD |
-| Dashboard load time | <3 seconds | TBD |
-| Alert response time | <5 minutes | N/A |
-| Log retention | 30 days | Unlimited |
+| Log sources | 5+ | 5 (Proxmox, Pi-hole, OPNsense, NTP, Gotra) |
+| Metrics sources | 5+ | 5 hosts with node_exporter |
+| Dashboard load time | <3 seconds | ~2 seconds |
+| Log retention | 24 months | 24 months ✅ |
+| Metrics retention | 24 months | 24 months ✅ |
 | System uptime | 99.9% | TBD |
 
 ---
