@@ -22,7 +22,7 @@ Internet
 |  OPNsense Firewall (gateway.alpina)                       |
 |  WAN: 172.88.97.187 (DHCP from ISP)                       |
 |  LAN: 172.16.16.16/16                                     |
-|  IPv6: 2603:8001:7402:cf1c::/64                           |
+|  IPv6: 2603:8001:7400:fa9a::/64 (DHCPv6-PD from Spectrum)  |
 +-----------------------------------------------------------+
     |
     v
