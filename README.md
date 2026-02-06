@@ -14,7 +14,7 @@ Configuration and documentation for the Alpina homelab network.
 | Monitoring | sentinella.alpina | 172.16.19.94 | 2603:8001:7400:fa9a:be24:11ff:fe95:2956 | [Grafana](https://grafana.sentinella.alpina) |
 | Proxmox | aria.alpina | 172.16.18.230 | 2603:8001:7400:fa9a:eaff:1eff:fed3:4683 | Proxmox Web UI |
 | Home Server | home.alpina | 172.16.17.109 | 2603:8001:7400:fa9a:be24:11ff:fec9:2694 | — |
-| NAS | portocali.alpina | 172.16.21.21 | — | DSM UI |
+| NAS | portocali.alpina | 172.16.21.21 | 2603:8001:7400:fa9a:7656:3cff:fe30:2dfc | DSM UI |
 
 ## Observability Stack
 
@@ -46,6 +46,7 @@ ssh alfa@sentinella.alpina                     # Monitoring server
 ssh root@aria.alpina                           # Proxmox host
 ssh alfa@gotra                                 # Gotra app server
 ssh alfa@home.alpina                             # Home server
+ssh alfa@portocali.alpina                        # NAS (Xpenology)
 ssh root@homeassistant.local                     # Home Assistant (HAOS)
 ```
 

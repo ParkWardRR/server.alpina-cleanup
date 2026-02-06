@@ -314,7 +314,8 @@ df -h /mnt/MonterosaSync-Read
 | Component | Value |
 |-----------|-------|
 | Hostname | komga.alpina |
-| IP | 172.16.16.202 |
+| IPv4 | 172.16.16.202 |
+| IPv6 | 2603:8001:7400:fa9a:be24:11ff:fe09:c0b9 (EUI-64 via SLAAC) |
 | OS | Debian 12 (bookworm) |
 | Kernel | 6.1.0-30-amd64 |
 | CPU | 4 vCPU (Intel N100) |

@@ -91,7 +91,7 @@ graph TD
     NAS · Xpenology DS3622xs+
     ─────────────────────────
     172.16.21.21
-    IPv6: not configured
+    2603:…:7656:3cff:fe30:2dfc
     ─────────────────────────
     77 TB · SMB · NFS · Plex
     SNMP :161 → Prometheus"]
@@ -122,7 +122,7 @@ graph TD
     style PROX fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
     style KOMGA fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
     style HOME fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
-    style NAS fill:#4a3000,stroke:#fbbf24,color:#fff,stroke-width:2px
+    style NAS fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
     style HAOS fill:#4a1010,stroke:#ef4444,color:#fff,stroke-width:2px
 ```
 
@@ -134,7 +134,7 @@ graph TD
 | 🔵 Blue border | Host with working dual-stack IPv6 |
 | 🟣 Purple border | DNS infrastructure |
 | 🟠 Orange border | Observability stack |
-| 🟡 Yellow border | IPv6 not yet configured |
+| ~~🟡 Yellow border~~ | ~~IPv6 not yet configured (none remaining)~~ |
 | 🔴 Red border | IPv6 unreachable |
 
 ---
@@ -161,7 +161,7 @@ flowchart LR
     (RFC 7217)"]
 
     E --> G["gateway, ntp, komga,
-    home, sentinella"]
+    home, sentinella, portocali"]
     F --> H["pihole"]
 
     C -- "RDNSS option" --> I["Pi-hole
@@ -202,8 +202,8 @@ graph LR
     **sentinella**"]
     PREFIX --- A["::eaff:1eff:fed3:4683
     **aria**"]
-    PREFIX --- PO["—
-    **portocali** ⚠️"]
+    PREFIX --- PO["::7656:3cff:fe30:2dfc
+    **portocali**"]
     PREFIX --- HA["—
     **homeassistant** ❌"]
 
@@ -215,7 +215,7 @@ graph LR
     style H fill:#1a3547,stroke:#38bdf8,color:#fff
     style S fill:#3b1f1f,stroke:#f97316,color:#fff
     style A fill:#1a3547,stroke:#38bdf8,color:#fff
-    style PO fill:#4a3000,stroke:#fbbf24,color:#fff
+    style PO fill:#1a3547,stroke:#38bdf8,color:#fff
     style HA fill:#4a1010,stroke:#ef4444,color:#fff
 ```
 
@@ -268,7 +268,7 @@ flowchart TD
 
     style NE1 fill:#1a3547,stroke:#38bdf8,color:#fff
     style PVE fill:#1a3547,stroke:#38bdf8,color:#fff
-    style SNMP fill:#4a3000,stroke:#fbbf24,color:#fff
+    style SNMP fill:#1a3547,stroke:#38bdf8,color:#fff
     style SYS fill:#1a3547,stroke:#38bdf8,color:#fff
     style PROM fill:#3b1f1f,stroke:#f97316,color:#fff,stroke-width:2px
     style ALLOY fill:#3b1f1f,stroke:#f97316,color:#fff
@@ -331,5 +331,5 @@ flowchart LR
 |---|-------|--------|-----------|
 | 1 | Rogue ULA RAs for `fde6:19bd:3ffd::/64` from 4 unknown MACs | Low (router-lifetime=0) | Identify devices by MAC, disable RA |
 | 2 | `homeassistant.alpina` has no global IPv6 | HAOS not dual-stack | Investigate HAOS IPv6 support |
-| 3 | `portocali.alpina` NAS not on IPv6 | NAS IPv4-only | Configure in DSM network settings |
+| ~~3~~ | ~~`portocali.alpina` NAS not on IPv6~~ | ~~Resolved~~ | ~~IPv6 enabled in DSM~~ |
 | 4 | Single /64 prefix limits future VLANs | No subnet segmentation | Request /56 from Spectrum |
