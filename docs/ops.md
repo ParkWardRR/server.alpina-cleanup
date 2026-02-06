@@ -58,6 +58,7 @@ ssh root@homeassistant.local                   # Home Assistant (HAOS)
   - home.alpina & sentinella.alpina: firewalld now allows `ipv6-icmp`; after clearing Pi-hole RA, single default via gateway and `ping -6` succeeds.
   - Pi-hole: `[dhcp] ipv6=false` in `pihole.toml`; restart FTL; no more default-route RAs from Pi-hole.
   - Portocali NAS: IPv6 enabled in DSM; SLAAC address `2603:...:fe30:2dfc` (EUI-64); default via gateway.
+  - Sentinella: Observability stack (Caddy/Grafana/Prometheus/Loki/Alloy) now dual-stack; added `[::]:80/443/1514` port bindings and `enable_ipv6: true` on Podman network.
 
 ## Application Notes
 

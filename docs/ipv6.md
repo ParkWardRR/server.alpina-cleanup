@@ -14,6 +14,7 @@
   - home.alpina & sentinella.alpina: firewalld now allows `ipv6-icmp`; IPv6 connectivity restored.
   - Pi-hole: Disabled DHCPv6/RA (`[dhcp] ipv6=false` in `pihole.toml`, restart FTL); stopped default-route RAs from Pi-hole; bounced NM on hosts to clear stale defaults → single default via gateway.
   - Portocali NAS: IPv6 enabled in DSM network settings; SLAAC address `2603:...:7656:3cff:fe30:2dfc` (EUI-64); default route via gateway; 8/9 hosts now dual-stack.
+  - Sentinella: Added IPv6 port bindings (`[::]:80`, `[::]:443`, `[::]:1514/udp`) to Caddy and Alloy containers; enabled `enable_ipv6: true` on Podman `observability` network; Grafana/Prometheus/Loki now accessible over IPv6.
 
 ## Per-Host Status
 
