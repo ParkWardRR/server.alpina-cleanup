@@ -1,6 +1,6 @@
 # IPv6 Preparation Plan — Alpina Homelab
 
-**Status:** Complete — 8/9 hosts dual-stack (HAOS outstanding)
+**Status:** Complete — 9/9 hosts dual-stack
 **Date:** 2026-02-06 (remediation pass 3)
 **Goal:** Enable full dual-stack IPv6 across the entire Alpina homelab infrastructure
 
@@ -147,7 +147,7 @@ interface igb0 {
 | sentinella.alpina | 172.16.19.94 | `2603:8001:7400:fa9a:be24:11ff:fe95:2956/64` | EUI-64 | Works | Yes |
 | aria.alpina (Proxmox) | 172.16.18.230 | `2603:8001:7400:fa9a:eaff:1eff:fed3:4683/64` | SLAAC | Works | No |
 | portocali.alpina | 172.16.21.21 | `2603:8001:7400:fa9a:7656:3cff:fe30:2dfc/64` | EUI-64 | Works | No |
-| homeassistant.local | 172.16.77.77 | **None visible** | N/A | **Unreachable** | No |
+| homeassistant.alpina | 172.16.77.77 | `2603:8001:7400:fa9a:d3e5:8d13:1bdd:2331/64` | Stable-Privacy | Works | Yes |
 
 ### What's Now Complete
 - [x] OPNsense DHCPv6-PD — active, prefix delegated
@@ -160,7 +160,7 @@ interface igb0 {
 - [x] Pi-hole blocking over IPv6 — `blockingmode = "null"` returns `::` for blocked AAAA
 - [x] Pi-hole AAAA records for local hosts — added to custom.list (core hostnames resolve)
 - [x] Pi-hole stable IPv6 address — using stable-privacy (addr_gen_mode=1), no action needed
-- [x] 8 of 9 hosts have global IPv6 addresses via SLAAC
+- [x] 9 of 9 hosts have global IPv6 addresses via SLAAC
 
 ---
 
@@ -217,13 +217,29 @@ interface igb0 {
 - Verified: `curl -6 -sk --resolve grafana.sentinella.alpina:443:[2603:...] https://grafana.sentinella.alpina/` returns HTTP 302.
 - Backup of original compose file at `/opt/observability/compose.yaml.bak-ipv6`.
 
+### Home Assistant (homeassistant.alpina)
+
+- Audit via `ha network info` (from SSH addon container) revealed HAOS host already had full IPv6:
+  - Global address: `2603:8001:7400:fa9a:d3e5:8d13:1bdd:2331/64` (stable-privacy via NetworkManager SLAAC)
+  - Link-local: `fe80::f60c:1f36:b707:a16a/64`
+  - Gateway: `fe80::a236:9fff:fe66:27ac` (OPNsense)
+  - DNS: `fe80::65b2:c033:6143:6d15` (Pi-hole via RDNSS)
+  - Method: auto, ready: true
+  - MAC: `DC:A6:32:4D:E3:F5` (Raspberry Pi 4)
+  - Kernel: `6.12.47-haos-raspi`; HAOS 17.0, Core 2026.2.0
+- Port 8123 returns HTTP 200 over IPv6 (verified from sentinella).
+- Pingable from sentinella and home.alpina over IPv6 (0% packet loss).
+- AAAA record already exists in Pi-hole for `homeassistant.alpina`.
+- **Note:** SSH addon runs in a Docker container with its own networking (no IPv6 in container). `ping -6` from SSH session fails, but the HAOS host OS itself is fully dual-stack.
+- No changes needed — IPv6 was already working. 9/9 hosts now dual-stack.
+
 ---
 
 ## Next Steps (Remaining Work)
 
 ### Completed (Priority 1)
 
-All previously-broken hosts are now fixed:
+All hosts are now on IPv6:
 
 - [x] **Proxmox (aria.alpina)** — Added `accept_ra=2` sysctl; global SLAAC address acquired.
 - [x] **home.alpina** — firewalld: allowed `ipv6-icmp` permanently; `ping -6` works.
@@ -231,11 +247,9 @@ All previously-broken hosts are now fixed:
 - [x] **Dual default routes** — Root cause: Pi-hole DHCPv6/RA was enabled. Disabled via `[dhcp] ipv6=false` in pihole.toml. All hosts now single default via OPNsense.
 - [x] **Portocali NAS** — IPv6 enabled in DSM network settings; SLAAC `2603:...:7656:3cff:fe30:2dfc` (EUI-64).
 - [x] **Sentinella services** — Added `[::]:80/443/1514` port bindings and `enable_ipv6: true` on Podman observability network; Grafana/Prometheus/Loki accessible over IPv6.
+- [x] **Home Assistant** — Already had working SLAAC via NetworkManager; `2603:...:d3e5:8d13:1bdd:2331` (stable-privacy); port 8123 on IPv6.
 
 ### Remaining
-
-#### HAOS (homeassistant.alpina) — No Global IPv6
-HAOS appliance has no visible global IPv6 address. Investigate if HAOS supports IPv6 or document as a known limitation.
 
 #### Upgrade PD to /56 (Future VLANs)
 Currently getting a single `/64`. Requesting `/56` from Charter/Spectrum would give 256 subnets for future VLANs. **Risk:** May change the current prefix, breaking all SLAAC addresses temporarily.

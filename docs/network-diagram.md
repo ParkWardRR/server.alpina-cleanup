@@ -97,12 +97,12 @@ graph TD
     SNMP :161 → Prometheus"]
 
     HAOS["**homeassistant.alpina**
-    Home Assistant OS
+    Home Assistant OS · RPi 4
     ─────────────────────────
     172.16.77.77
-    IPv6: unreachable
+    2603:…:d3e5:8d13:1bdd:2331
     ─────────────────────────
-    Port 8123"]
+    Port 8123 · NM/SLAAC"]
 
     KOMGA -. "NFS :2049
     /volume2/MonterosaSync" .-> NAS
@@ -123,7 +123,7 @@ graph TD
     style KOMGA fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
     style HOME fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
     style NAS fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
-    style HAOS fill:#4a1010,stroke:#ef4444,color:#fff,stroke-width:2px
+    style HAOS fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
 ```
 
 ### Legend
@@ -133,8 +133,6 @@ graph TD
 | 🟢 Green border | Gateway — RA source, IPv6 fully operational |
 | 🔵 Blue border | Host with working dual-stack IPv6 |
 | 🟣 Purple border | DNS infrastructure |
-| ~~🟡 Yellow border~~ | ~~IPv6 not yet configured (none remaining)~~ |
-| 🔴 Red border | IPv6 unreachable |
 
 ---
 
@@ -161,7 +159,7 @@ flowchart LR
 
     E --> G["gateway, ntp, komga,
     home, sentinella, portocali"]
-    F --> H["pihole"]
+    F --> H["pihole, homeassistant"]
 
     C -- "RDNSS option" --> I["Pi-hole
     fe80::65b2:c033:6143:6d15"]
@@ -203,8 +201,8 @@ graph LR
     **aria**"]
     PREFIX --- PO["::7656:3cff:fe30:2dfc
     **portocali**"]
-    PREFIX --- HA["—
-    **homeassistant** ❌"]
+    PREFIX --- HA["::d3e5:8d13:1bdd:2331
+    **homeassistant**"]
 
     style PREFIX fill:#1a4731,stroke:#00d68f,color:#fff,stroke-width:3px
     style G fill:#1a4731,stroke:#00d68f,color:#fff
@@ -215,7 +213,7 @@ graph LR
     style S fill:#1a3547,stroke:#38bdf8,color:#fff
     style A fill:#1a3547,stroke:#38bdf8,color:#fff
     style PO fill:#1a3547,stroke:#38bdf8,color:#fff
-    style HA fill:#4a1010,stroke:#ef4444,color:#fff
+    style HA fill:#1a3547,stroke:#38bdf8,color:#fff
 ```
 
 ---
@@ -329,6 +327,6 @@ flowchart LR
 | # | Issue | Impact | Next Step |
 |---|-------|--------|-----------|
 | 1 | Rogue ULA RAs for `fde6:19bd:3ffd::/64` from 4 unknown MACs | Low (router-lifetime=0) | Identify devices by MAC, disable RA |
-| 2 | `homeassistant.alpina` has no global IPv6 | HAOS not dual-stack | Investigate HAOS IPv6 support |
+| ~~2~~ | ~~`homeassistant.alpina` has no global IPv6~~ | ~~Resolved~~ | ~~HAOS already had SLAAC via NetworkManager~~ |
 | ~~3~~ | ~~`portocali.alpina` NAS not on IPv6~~ | ~~Resolved~~ | ~~IPv6 enabled in DSM~~ |
 | 4 | Single /64 prefix limits future VLANs | No subnet segmentation | Request /56 from Spectrum |

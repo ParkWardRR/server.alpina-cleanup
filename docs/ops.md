@@ -31,7 +31,7 @@ Single source for network/host facts, access, IPv6 status, and app notes.
 | home.alpina | 172.16.17.109 | 2603:8001:7400:fa9a:be24:11ff:fec9:2694 | General purpose server |
 | sentinella.alpina | 172.16.19.94 | 2603:8001:7400:fa9a:be24:11ff:fe95:2956 | Observability stack |
 | aria.alpina | 172.16.18.230 | 2603:8001:7400:fa9a:eaff:1eff:fed3:4683 | Proxmox host |
-| homeassistant.alpina | 172.16.77.77 | — | HAOS appliance (no global IPv6 yet) |
+| homeassistant.alpina | 172.16.77.77 | 2603:8001:7400:fa9a:d3e5:8d13:1bdd:2331 | HAOS appliance (Raspberry Pi 4); port 8123 on IPv6 |
 | portocali.alpina | 172.16.21.21 | 2603:8001:7400:fa9a:7656:3cff:fe30:2dfc | NAS (Xpenology); SNMP metrics + syslog to Sentinella |
 
 ## SSH Access
@@ -51,14 +51,15 @@ ssh root@homeassistant.local                   # Home Assistant (HAOS)
 - Prefix: `2603:8001:7400:fa9a::/64` via DHCPv6-PD on OPNsense.
 - OPNsense RAs: SLAAC + RDNSS (Pi-hole link-local) + DNSSL (alpina); firewall allows ICMPv6/NDP/DHCPv6.
 - Pi-hole: dual-stack DNS; DHCPv6/RA **disabled** to stop rogue RAs.
-- Working dual-stack hosts: gateway, pihole, ntp, komga, home, sentinella, aria (vmbr0), portocali — all with SLAAC.
-- Outstanding: HAOS still lacks global IPv6; route-info-only RAs for ULA `fde6:19bd:3ffd::/64` from MACs `04:99:b9:71:36:9d`, `04:99:b9:84:18:17`, `ec:a9:07:07:22:bf`, `ac:bc:b5:db:26:fa` (identify/disable at source).
+- **All 9/9 hosts dual-stack:** gateway, pihole, ntp, komga, home, sentinella, aria, portocali, homeassistant — all with SLAAC.
+- Outstanding: route-info-only RAs for ULA `fde6:19bd:3ffd::/64` from MACs `04:99:b9:71:36:9d`, `04:99:b9:84:18:17`, `ec:a9:07:07:22:bf`, `ac:bc:b5:db:26:fa` (identify/disable at source).
 - Recent fixes (2026-02-06):
   - Proxmox: added `/etc/sysctl.d/50-ipv6.conf` with `accept_ra=2` (vmbr0/all); now has global address and internet v6 reachability.
   - home.alpina & sentinella.alpina: firewalld now allows `ipv6-icmp`; after clearing Pi-hole RA, single default via gateway and `ping -6` succeeds.
   - Pi-hole: `[dhcp] ipv6=false` in `pihole.toml`; restart FTL; no more default-route RAs from Pi-hole.
   - Portocali NAS: IPv6 enabled in DSM (`IPV6INIT=auto`, `accept_ra=2`, `autoconf=1`); SLAAC address `2603:...:fe30:2dfc` (EUI-64); default via gateway. Note: no services (SSH/SMB/NFS) listen on IPv6; DNS resolver is IPv4-only.
   - Sentinella: Observability stack (Caddy/Grafana/Prometheus/Loki/Alloy) now dual-stack; added `[::]:80/443/1514` port bindings and `enable_ipv6: true` on Podman network.
+  - Home Assistant: HAOS already had IPv6 via NetworkManager/SLAAC; global address `2603:...:d3e5:8d13:1bdd:2331` (stable-privacy); gateway and DNS via RDNSS both correct; port 8123 accessible over IPv6; 9/9 hosts now dual-stack.
 
 ## Application Notes
 
@@ -82,6 +83,6 @@ ssh root@homeassistant.local                   # Home Assistant (HAOS)
 
 ### Open Actions
 - Identify devices sending ULA route-info RAs; disable RA on those MACs.
-- Add HAOS IPv6 (if possible) or document limitation.
+- ~~Add HAOS IPv6~~ — resolved; HAOS already had working IPv6 via SLAAC.
 - Add AAAA record for `portocali.alpina` in Pi-hole custom.list.
 - Optional: request /56 PD from ISP (may change prefix; plan renumbering beforehand).
