@@ -1,7 +1,7 @@
 # IPv6 Preparation Plan — Alpina Homelab
 
 **Status:** In Progress — OPNsense & Pi-hole Remediated
-**Date:** 2026-02-05 (remediation pass 1)
+**Date:** 2026-02-06 (remediation pass 2)
 **Goal:** Enable full dual-stack IPv6 across the entire Alpina homelab infrastructure
 
 ---
@@ -142,10 +142,10 @@ interface igb0 {
 | gateway.alpina (LAN) | 172.16.16.16 | `2603:8001:7400:fa9a:a236:9fff:fe66:27ac/64` | EUI-64 | N/A | No (FTL bug) |
 | pihole | 172.16.66.66 | `2603:8001:7400:fa9a:4392:b645:21ad:5510/64` | Stable-Privacy | Works | Yes (::1) |
 | ntp.alpina | 172.16.16.108 | `2603:8001:7400:fa9a:be24:11ff:fe60:2dfe/64` | EUI-64 | Works | Yes |
-| home.alpina | 172.16.17.109 | `2603:8001:7400:fa9a:be24:11ff:fec9:2694/64` | EUI-64 | **Timeout** | Yes |
+| home.alpina | 172.16.17.109 | `2603:8001:7400:fa9a:be24:11ff:fec9:2694/64` | EUI-64 | Works | Yes |
 | komga.alpina | 172.16.16.202 | `2603:8001:7400:fa9a:be24:11ff:fe09:c0b9/64` | EUI-64 | Works | Yes |
-| sentinella.alpina | 172.16.19.94 | `2603:8001:7400:fa9a:be24:11ff:fe95:2956/64` | EUI-64 | **Timeout** | Yes |
-| aria.alpina (Proxmox) | 172.16.18.230 | **Link-local only** | None | **Unreachable** | No |
+| sentinella.alpina | 172.16.19.94 | `2603:8001:7400:fa9a:be24:11ff:fe95:2956/64` | EUI-64 | Works | Yes |
+| aria.alpina (Proxmox) | 172.16.18.230 | `2603:8001:7400:fa9a:eaff:1eff:fed3:4683/64` | SLAAC | Works | No |
 | homeassistant.local | 172.16.77.77 | **None visible** | N/A | **Unreachable** | No |
 
 ### What's Now Complete
@@ -160,6 +160,38 @@ interface igb0 {
 - [x] Pi-hole AAAA records for local hosts — added to custom.list (core hostnames resolve)
 - [x] Pi-hole stable IPv6 address — using stable-privacy (addr_gen_mode=1), no action needed
 - [x] 5 of 8 hosts have global IPv6 addresses via SLAAC
+
+---
+
+## Remediation Log — 2026-02-06
+
+### Proxmox (aria.alpina)
+
+- Added `/etc/sysctl.d/50-ipv6.conf` with:
+  - `net.ipv6.conf.vmbr0.accept_ra=2`
+  - `net.ipv6.conf.all.accept_ra=2`
+- Applied with `sysctl -p /etc/sysctl.d/50-ipv6.conf` and solicited an RA (`rdisc6 -1 vmbr0`).
+- Result: vmbr0 now has global SLAAC `2603:8001:7400:fa9a:eaff:1eff:fed3:4683/64`; dual default routes via gateway + Pi-hole observed (same as other hosts).
+- Connectivity: `ping -6 google.com` succeeds (~14–17 ms RTT).
+
+### home.alpina
+
+- Firewalld: `sudo firewall-cmd --permanent --add-protocol=ipv6-icmp && sudo firewall-cmd --reload`.
+- Runtime default route from Pi-hole still appears (two IPv6 default gateways). Manually removed the Pi-hole nexthop during testing: `sudo ip -6 route del default via fe80::65b2:c033:6143:6d15 dev ens18` — ping started working immediately. Route re-adds when new RAs arrive; root cause still the suspected rogue RA source.
+- Connectivity: `ping -6 google.com` now succeeds.
+
+### sentinella.alpina
+
+- Same firewalld change: allow `ipv6-icmp` permanently and reload.
+- Same dual-default-route behavior; removed Pi-hole nexthop during verification to get immediate success: `sudo ip -6 route del default via fe80::65b2:c033:6143:6d15 dev ens18`.
+- Connectivity: `ping -6 google.com` succeeds after removal; route may reappear until rogue RA is addressed.
+
+### Router Advertisement cleanup (Pi-hole)
+
+- Identified unintended RAs (router lifetime 1800s, prefix 2603:8001:7400:fa9a::/64) coming from Pi-hole (`b8:27:eb:db:9a:15`) because Pi-hole DHCPv6 was enabled. RAs with route-info only (no default) also observed from multiple MACs `04:99:b9:71:36:9d/04:99:b9:84:18:17/ec:a9:07:07:22:bf/ac:bc:b5:db:26:fa` advertising ULA `fde6:19bd:3ffd::/64` but **router lifetime 0** (no default route impact).
+- Fix applied on Pi-hole: set `[dhcp] ipv6 = false` in `/etc/pihole/pihole.toml`, restart `pihole-FTL`, and verify `dnsmasq.conf` no longer contains `dhcp-range=::` (no RAs emitted; tcpdump on Pi-hole shows 0 ICMPv6 type 134).
+- Cleared stale RA-learned defaults by bouncing NetworkManager on hosts: `nmcli conn down ens18 && nmcli conn up ens18` on `home.alpina` and `sentinella.alpina`.
+- Result: both hosts now have a **single IPv6 default route via OPNsense** (`fe80::a236:9fff:fe66:27ac`) and `ping -6 google.com` succeeds.
 
 ---
 

@@ -4,16 +4,16 @@ Configuration and documentation for the Alpina homelab network.
 
 ## Quick Reference
 
-| Service | Host | IP | Web Access |
-|---------|------|-----|------------|
-| Firewall | gateway.alpina | 172.16.16.16 | OPNsense Web UI |
-| DNS/Ad-block | pihole | 172.16.66.66 | Pi-hole Admin |
-| NTP | ntp.alpina | 172.16.16.108 | [Landing Page](http://ntp.alpina) |
-| Home Assistant | homeassistant.alpina | 172.16.77.77 | [Web UI](http://homeassistant.alpina:8123) |
-| Komga | komga.alpina | 172.16.16.202 | [Landing Page](http://komga.alpina) / [Komga UI](http://komga.alpina:25600) |
-| Monitoring | sentinella.alpina | 172.16.19.94 | [Grafana](https://grafana.sentinella.alpina) |
-| Proxmox | aria.alpina | 172.16.18.230 | Proxmox Web UI |
-| Home Server | home.alpina | 172.16.17.109 | — |
+| Service | Host | IPv4 | IPv6 | Web Access |
+|---------|------|------|------|------------|
+| Firewall | gateway.alpina | 172.16.16.16 | 2603:8001:7400:fa9a:a236:9fff:fe66:27ac | OPNsense Web UI |
+| DNS/Ad-block | pihole | 172.16.66.66 | 2603:8001:7400:fa9a:4392:b645:21ad:5510 | Pi-hole Admin |
+| NTP | ntp.alpina | 172.16.16.108 | 2603:8001:7400:fa9a:be24:11ff:fe60:2dfe | [Landing Page](http://ntp.alpina) |
+| Home Assistant | homeassistant.alpina | 172.16.77.77 | — | [Web UI](http://homeassistant.alpina:8123) |
+| Komga | komga.alpina | 172.16.16.202 | 2603:8001:7400:fa9a:be24:11ff:fe09:c0b9 | [Landing Page](http://komga.alpina) / [Komga UI](http://komga.alpina:25600) |
+| Monitoring | sentinella.alpina | 172.16.19.94 | 2603:8001:7400:fa9a:be24:11ff:fe95:2956 | [Grafana](https://grafana.sentinella.alpina) |
+| Proxmox | aria.alpina | 172.16.18.230 | 2603:8001:7400:fa9a:eaff:1eff:fed3:4683 | Proxmox Web UI |
+| Home Server | home.alpina | 172.16.17.109 | 2603:8001:7400:fa9a:be24:11ff:fec9:2694 | — |
 
 ## Observability Stack
 
@@ -50,9 +50,8 @@ ssh root@homeassistant.local                     # Home Assistant (HAOS)
 
 | Document | Description |
 |----------|-------------|
-| [homelab-details.md](homelab-details.md) | Network topology, service configs, custom DNS |
-| [sentinella-observability-deployment.md](sentinella-observability-deployment.md) | Observability stack deployment and credentials |
-| [monitoring-buildout-history.md](monitoring-buildout-history.md) | Monitoring build-out history and change log |
-| [monitoring-roadmap.md](monitoring-roadmap.md) | Monitoring roadmap and future plans |
-| [komga-remediation-plan.md](komga-remediation-plan.md) | Komga server hardening tasks |
-| [ipv6-prep.md](ipv6-prep.md) | IPv6 preparation and rollout plan |
+| docs/ops.md | Single-source operations runbook (hosts, access, IPv6 snapshot, app notes) |
+| docs/ipv6.md | IPv6 state, history, per-host status, remaining actions |
+| ipv6-prep.md | Detailed IPv6 remediation plan & logs (kept for depth) |
+| komga-remediation-plan.md | Komga server hardening log |
+| README.md | You are here (quick reference) |
