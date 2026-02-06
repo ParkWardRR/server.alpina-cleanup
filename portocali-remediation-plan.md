@@ -38,6 +38,9 @@
 | RAM | 125GB DDR |
 | Drives | 11 SATA (sda-sdk) + 2 NVMe |
 | NIC | Intel e1000e, 172.16.21.21/16 |
+| IPv6 Config | `IPV6INIT=auto`, `accept_ra=2`, `autoconf=1` |
+| IPv6 DNS | None (resolv.conf IPv4-only: 172.16.66.66) |
+| IPv6 Services | None (SSH/SMB/NFS/HTTPS listen on IPv4 only) |
 
 ### Storage Layout
 
