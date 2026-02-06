@@ -198,7 +198,13 @@ interface igb0 {
 
 - IPv6 enabled via DSM network settings.
 - SLAAC address `2603:8001:7400:fa9a:7656:3cff:fe30:2dfc/64` (EUI-64) acquired automatically.
-- Default route via OPNsense (`fe80::a236:9fff:fe66:27ac`).
+- Default route via OPNsense (`fe80::a236:9fff:fe66:27ac`), metric 1024.
+- DSM network config (`/etc/sysconfig/network-scripts/ifcfg-eth0`): `IPV6INIT=auto`, `IPV6_ACCEPT_RA=1`.
+- Sysctl: `accept_ra=2`, `autoconf=1` — correct for SLAAC on a host with forwarding disabled.
+- Link-local: `fe80::7656:3cff:fe30:2dfc/64`.
+- DNS: IPv4-only (`nameserver 172.16.66.66` in `/etc/resolv.conf`); no IPv6 nameserver configured.
+- **Services on IPv6: none** — SSH, SMB, NFS, HTTPS all listen on IPv4 only. DSM does not bind services to IPv6 by default.
+- NDP neighbor table confirms rogue RA sources: `04:99:b9:71:36:9d` and `ac:bc:b5:db:26:fa` appear as "router STALE".
 - 8/9 hosts now dual-stack.
 
 ### Sentinella Observability Stack (Podman IPv6)

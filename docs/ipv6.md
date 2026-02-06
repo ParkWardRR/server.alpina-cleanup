@@ -27,7 +27,7 @@
 | home.alpina | 172.16.17.109 | 2603:8001:7400:fa9a:be24:11ff:fec9:2694/64 | EUI-64 | Works | firewalld allows ipv6-icmp |
 | sentinella.alpina | 172.16.19.94 | 2603:8001:7400:fa9a:be24:11ff:fe95:2956/64 | EUI-64 | Works | firewalld allows ipv6-icmp |
 | aria.alpina (Proxmox) | 172.16.18.230 | 2603:8001:7400:fa9a:eaff:1eff:fed3:4683/64 | SLAAC | Works | accept_ra=2 on vmbr0/all |
-| portocali.alpina | 172.16.21.21 | 2603:8001:7400:fa9a:7656:3cff:fe30:2dfc/64 | EUI-64 | Works | Enabled in DSM |
+| portocali.alpina | 172.16.21.21 | 2603:8001:7400:fa9a:7656:3cff:fe30:2dfc/64 | EUI-64 | Works | DSM `IPV6INIT=auto`; no services on IPv6 |
 | homeassistant.alpina | 172.16.77.77 | — | — | Unreachable | HAOS: no global IPv6 |
 
 ## Actions Remaining
