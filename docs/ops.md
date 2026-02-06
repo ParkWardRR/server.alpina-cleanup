@@ -10,6 +10,12 @@ Single source for network/host facts, access, IPv6 status, and app notes.
 - NTP: http://ntp.alpina (landing)
 - Home Assistant: http://homeassistant.alpina:8123
 
+## Monitoring Stack (Sentinella)
+- Grafana: https://grafana.sentinella.alpina — user `admin`, pass `sG8pF8JcGVl4BypmiPy/j06HgMcPda41`
+- Prometheus / Loki / Alloy (basic auth): https://prometheus.sentinella.alpina, https://loki.sentinella.alpina, https://alloy.sentinella.alpina — user `admin`, pass `vURLumGa0GMu4/nR2+vejcenAQBqt1un`
+- Syslog ingest: `sentinella.alpina:1514/udp`
+- Manage: `sudo systemctl restart observability-stack` (on sentinella); configs under `/opt/observability/`
+
 ## Hosts
 
 | Host | IPv4 | IPv6 | Role |
@@ -70,4 +76,3 @@ ssh root@homeassistant.local                   # Home Assistant (HAOS)
 - Identify devices sending ULA route-info RAs; disable RA on those MACs.
 - Add HAOS IPv6 (if possible) or document limitation.
 - Optional: request /56 PD from ISP (may change prefix; plan renumbering beforehand).
-
