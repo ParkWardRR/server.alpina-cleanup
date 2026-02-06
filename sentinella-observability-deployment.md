@@ -311,6 +311,19 @@ echo "<14>Test message from CLI" | nc -u sentinella.alpina 1514
 - Network and Disk I/O (per VM)
 - Resource allocation summaries
 
+### Alpina Homelab — Command Center
+- **UID:** homelab-master
+- Master dashboard with 44 panels across 9 sections
+- Overview: Hosts Online, VMs Running, Avg CPU/Memory, NTP Sync, Log Entries
+- Fleet Health: CPU/Memory/Disk bar gauges + time series for all hosts
+- Proxmox Virtualization: VM status table
+- NTP & Time Synchronization: Clock offset, sync status, frequency drift
+- Pi-hole DNS & Ad Blocking: DNS query rate, CPU, memory, uptime
+- OPNsense Firewall: Firewall events, TCP connections, log stream
+- Network & Storage I/O: Network and disk I/O charts
+- Logs & Events: Log volume, error rate, recent errors
+- Host Inventory: Summary table with gauge columns
+
 ---
 
 ## Configured Log Sources
@@ -386,6 +399,7 @@ All Linux hosts have Prometheus node_exporter installed for system metrics colle
 | gotra | 9100 | ✅ Active |
 | aria.alpina (Proxmox) | 9100 | ✅ Active |
 | pihole | 9100 | ✅ Active |
+| komga.alpina | 9100 | ✅ Active |
 
 Metrics collected include:
 - CPU usage per core and total

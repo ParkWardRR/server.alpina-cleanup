@@ -175,11 +175,17 @@ See [komga-remediation-plan.md](komga-remediation-plan.md) for pending hardening
 - Pi-hole - rsyslog forwarding
 - OPNsense (gateway) - configure via web UI
 
+### Grafana Dashboards
+- **Alpina Homelab Command Center:** https://grafana.sentinella.alpina/d/homelab-master — 44 panels, 9 sections
+- System Metrics, Proxmox VMs, NTP Sync, OPNsense Firewall, Gotra App, Logs
+
 ### Configuration
 - Reverse proxy: Caddy with internal TLS
 - Data persistence: Podman volumes
 - Systemd service: observability-stack.service
-- Grafana dashboard: Homelab Infrastructure Logs (pre-provisioned)
+- Node Exporter: 6 hosts monitored (sentinella, ntp, gotra, aria, pihole, komga)
+- PVE Exporter: Proxmox VM metrics (9 VMs)
+- Data retention: 24 months (Prometheus + Loki)
 
 ### Status
 See [sentinella-observability-deployment.md](sentinella-observability-deployment.md) for full deployment details and credentials.

@@ -23,11 +23,26 @@ A comprehensive observability platform providing real-time insights into the Alp
 - [x] Gotra application server
 
 ### Metrics Sources Active
-- [x] Node exporter on all Linux hosts (5 hosts)
+- [x] Node exporter on all Linux hosts (6 hosts: sentinella, ntp, gotra, aria, pihole, komga)
+- [x] PVE exporter for Proxmox VM metrics (9 VMs monitored)
 - [x] Prometheus self-monitoring
 - [x] Grafana metrics
 - [x] Loki metrics
 - [x] Alloy metrics
+
+### Dashboards
+- [x] Alpina Homelab Command Center (master dashboard, 44 panels, 9 sections)
+- [x] System Metrics dashboard
+- [x] Proxmox VMs dashboard
+- [x] NTP Time Sync dashboard
+- [x] OPNsense Firewall Security dashboard
+- [x] Gotra Application dashboard
+- [x] Homelab Infrastructure Logs dashboard
+- [x] Homelab Overview dashboard
+
+### Server Landing Pages
+- [x] Komga landing page (port 80) — Go-based with 30-day CPU/memory charts
+- [x] NTP landing page (port 8080) — Go-based with chrony sync status
 
 ---
 
@@ -137,7 +152,8 @@ A comprehensive observability platform providing real-time insights into the Alp
 | Metric | Target | Current |
 |--------|--------|---------|
 | Log sources | 5+ | 5 (Proxmox, Pi-hole, OPNsense, NTP, Gotra) |
-| Metrics sources | 5+ | 5 hosts with node_exporter |
+| Metrics sources | 6+ | 6 hosts with node_exporter + PVE exporter |
+| Dashboards | 5+ | 8 dashboards + 1 master command center |
 | Dashboard load time | <3 seconds | ~2 seconds |
 | Log retention | 24 months | 24 months ✅ |
 | Metrics retention | 24 months | 24 months ✅ |
