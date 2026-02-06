@@ -54,6 +54,7 @@ ssh root@homeassistant.local                     # Home Assistant (HAOS)
 | Document | Description |
 |----------|-------------|
 | docs/ops.md | Single-source operations runbook (hosts, access, IPv6 snapshot, app notes) |
+| docs/network-diagram.md | IPv6 network topology diagrams (rendered on GitHub) |
 | docs/ipv6.md | IPv6 state, history, per-host status, remaining actions |
 | ipv6-prep.md | Detailed IPv6 remediation plan & logs (kept for depth) |
 | komga-remediation-plan.md | Komga server hardening log |
