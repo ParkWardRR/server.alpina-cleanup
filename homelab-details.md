@@ -10,6 +10,7 @@
 | Komga | komga.alpina | 172.16.16.202 | Media server (comics) |
 | Sentinella | sentinella.alpina | 172.16.19.94 | Monitoring (Grafana/Prometheus/Loki) |
 | Home Assistant | homeassistant.alpina | 172.16.77.77 | Smart home automation |
+| Home Server | home.alpina | 172.16.17.109 | General purpose server |
 
 ## Network Topology
 
@@ -21,7 +22,7 @@ Internet
 |  OPNsense Firewall (gateway.alpina)                       |
 |  WAN: 172.88.97.187 (DHCP from ISP)                       |
 |  LAN: 172.16.16.16/16                                     |
-|  IPv6: 2603:8001:7402:cf1c::/64                           |
+|  IPv6: 2603:8001:7400:fa9a::/64 (DHCPv6-PD from Spectrum)  |
 +-----------------------------------------------------------+
     |
     v
@@ -52,6 +53,12 @@ ssh -i ~/.ssh/id_ed25519_komga_alpina alfa@komga.alpina
 
 # Sentinella monitoring
 ssh alfa@sentinella.alpina
+
+# Home server
+ssh -i ~/.ssh/id_ed25519 alfa@home.alpina
+
+# Home Assistant (HAOS)
+ssh -i ~/.ssh/id_ed25519 root@homeassistant.local
 ```
 
 ---
@@ -184,7 +191,7 @@ See [komga-remediation-plan.md](komga-remediation-plan.md) for pending hardening
 - Reverse proxy: Caddy with internal TLS
 - Data persistence: Podman volumes
 - Systemd service: observability-stack.service
-- Node Exporter: 6 hosts monitored (sentinella, ntp, gotra, aria, pihole, komga)
+- Node Exporter: 7 hosts monitored (sentinella, ntp, gotra, aria, pihole, komga, home)
 - PVE Exporter: Proxmox VM metrics (9 VMs)
 - Data retention: 24 months (Prometheus + Loki)
 

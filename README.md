@@ -13,6 +13,7 @@ Configuration and documentation for the Alpina homelab network.
 | Komga | komga.alpina | 172.16.16.202 | [Landing Page](http://komga.alpina) / [Komga UI](http://komga.alpina:25600) |
 | Monitoring | sentinella.alpina | 172.16.19.94 | [Grafana](https://grafana.sentinella.alpina) |
 | Proxmox | aria.alpina | 172.16.18.230 | Proxmox Web UI |
+| Home Server | home.alpina | 172.16.17.109 | — |
 
 ## Observability Stack
 
@@ -20,7 +21,7 @@ All infrastructure is monitored via the Sentinella observability stack:
 
 - **Grafana Dashboards:** https://grafana.sentinella.alpina
   - [Alpina Homelab Command Center](https://grafana.sentinella.alpina/d/homelab-master) — Master dashboard with all key metrics
-- **Prometheus Metrics:** 6 hosts with node_exporter + Proxmox PVE exporter (9 VMs)
+- **Prometheus Metrics:** 7 hosts with node_exporter + Proxmox PVE exporter (9 VMs)
 - **Loki Logs:** Centralized syslog from Proxmox, Pi-hole, OPNsense, NTP, Gotra
 - **Data Retention:** 24 months for both metrics and logs
 
@@ -41,6 +42,8 @@ ssh alfa@komga.alpina                          # Komga media server
 ssh alfa@sentinella.alpina                     # Monitoring server
 ssh root@aria.alpina                           # Proxmox host
 ssh alfa@gotra                                 # Gotra app server
+ssh alfa@home.alpina                             # Home server
+ssh root@homeassistant.local                     # Home Assistant (HAOS)
 ```
 
 ## Documentation
