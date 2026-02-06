@@ -118,7 +118,7 @@ graph TD
     style SW fill:none,stroke:none
     style DNS fill:#2d1b4e,stroke:#a855f7,color:#fff,stroke-width:2px
     style NTP fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
-    style MON fill:#3b1f1f,stroke:#f97316,color:#fff,stroke-width:2px
+    style MON fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
     style PROX fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
     style KOMGA fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
     style HOME fill:#1a3547,stroke:#38bdf8,color:#fff,stroke-width:2px
@@ -133,7 +133,6 @@ graph TD
 | 🟢 Green border | Gateway — RA source, IPv6 fully operational |
 | 🔵 Blue border | Host with working dual-stack IPv6 |
 | 🟣 Purple border | DNS infrastructure |
-| 🟠 Orange border | Observability stack |
 | ~~🟡 Yellow border~~ | ~~IPv6 not yet configured (none remaining)~~ |
 | 🔴 Red border | IPv6 unreachable |
 
@@ -213,7 +212,7 @@ graph LR
     style N fill:#1a3547,stroke:#38bdf8,color:#fff
     style K fill:#1a3547,stroke:#38bdf8,color:#fff
     style H fill:#1a3547,stroke:#38bdf8,color:#fff
-    style S fill:#3b1f1f,stroke:#f97316,color:#fff
+    style S fill:#1a3547,stroke:#38bdf8,color:#fff
     style A fill:#1a3547,stroke:#38bdf8,color:#fff
     style PO fill:#1a3547,stroke:#38bdf8,color:#fff
     style HA fill:#4a1010,stroke:#ef4444,color:#fff
