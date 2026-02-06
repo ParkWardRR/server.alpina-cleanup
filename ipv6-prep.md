@@ -1,7 +1,7 @@
 # IPv6 Preparation Plan — Alpina Homelab
 
-**Status:** In Progress — OPNsense & Pi-hole Remediated
-**Date:** 2026-02-06 (remediation pass 2)
+**Status:** Complete — 8/9 hosts dual-stack (HAOS outstanding)
+**Date:** 2026-02-06 (remediation pass 3)
 **Goal:** Enable full dual-stack IPv6 across the entire Alpina homelab infrastructure
 
 ---
@@ -146,6 +146,7 @@ interface igb0 {
 | komga.alpina | 172.16.16.202 | `2603:8001:7400:fa9a:be24:11ff:fe09:c0b9/64` | EUI-64 | Works | Yes |
 | sentinella.alpina | 172.16.19.94 | `2603:8001:7400:fa9a:be24:11ff:fe95:2956/64` | EUI-64 | Works | Yes |
 | aria.alpina (Proxmox) | 172.16.18.230 | `2603:8001:7400:fa9a:eaff:1eff:fed3:4683/64` | SLAAC | Works | No |
+| portocali.alpina | 172.16.21.21 | `2603:8001:7400:fa9a:7656:3cff:fe30:2dfc/64` | EUI-64 | Works | No |
 | homeassistant.local | 172.16.77.77 | **None visible** | N/A | **Unreachable** | No |
 
 ### What's Now Complete
@@ -159,7 +160,7 @@ interface igb0 {
 - [x] Pi-hole blocking over IPv6 — `blockingmode = "null"` returns `::` for blocked AAAA
 - [x] Pi-hole AAAA records for local hosts — added to custom.list (core hostnames resolve)
 - [x] Pi-hole stable IPv6 address — using stable-privacy (addr_gen_mode=1), no action needed
-- [x] 5 of 8 hosts have global IPv6 addresses via SLAAC
+- [x] 8 of 9 hosts have global IPv6 addresses via SLAAC
 
 ---
 
@@ -193,40 +194,42 @@ interface igb0 {
 - Cleared stale RA-learned defaults by bouncing NetworkManager on hosts: `nmcli conn down ens18 && nmcli conn up ens18` on `home.alpina` and `sentinella.alpina`.
 - Result: both hosts now have a **single IPv6 default route via OPNsense** (`fe80::a236:9fff:fe66:27ac`) and `ping -6 google.com` succeeds.
 
+### Portocali NAS (portocali.alpina)
+
+- IPv6 enabled via DSM network settings.
+- SLAAC address `2603:8001:7400:fa9a:7656:3cff:fe30:2dfc/64` (EUI-64) acquired automatically.
+- Default route via OPNsense (`fe80::a236:9fff:fe66:27ac`).
+- 8/9 hosts now dual-stack.
+
+### Sentinella Observability Stack (Podman IPv6)
+
+- Added IPv6 port bindings to `/opt/observability/compose.yaml`:
+  - Caddy: `[::]:80:80`, `[::]:443:443`
+  - Alloy: `[::]:1514:1514/udp`
+- Added `enable_ipv6: true` to the `observability` Podman network definition.
+- Restarted `observability-stack` service; Podman auto-assigned ULA `fdbd:bd7c:6e6b:24fa::/64` to the internal network.
+- Verified: `curl -6 -sk --resolve grafana.sentinella.alpina:443:[2603:...] https://grafana.sentinella.alpina/` returns HTTP 302.
+- Backup of original compose file at `/opt/observability/compose.yaml.bak-ipv6`.
+
 ---
 
 ## Next Steps (Remaining Work)
 
-### Priority 1: Fix Broken Hosts
+### Completed (Priority 1)
 
-#### Proxmox (aria.alpina) — No Global IPv6
-Proxmox has only link-local on vmbr0. Likely cause: `forwarding=1` suppresses RA acceptance.
-```bash
-ssh root@aria.alpina
-echo "net.ipv6.conf.vmbr0.accept_ra=2" >> /etc/sysctl.d/50-ipv6.conf
-sysctl -p /etc/sysctl.d/50-ipv6.conf
-ip -6 addr show vmbr0
-ping6 -c4 google.com
-```
+All previously-broken hosts are now fixed:
 
-#### home.alpina — Firewalld Blocks ICMPv6
-Has global IPv6 but `firewalld` blocks outbound ICMPv6.
-```bash
-ssh -i ~/.ssh/id_ed25519 alfa@home.alpina
-sudo firewall-cmd --permanent --add-protocol=ipv6-icmp
-sudo firewall-cmd --reload
-ping6 -c4 google.com
-```
+- [x] **Proxmox (aria.alpina)** — Added `accept_ra=2` sysctl; global SLAAC address acquired.
+- [x] **home.alpina** — firewalld: allowed `ipv6-icmp` permanently; `ping -6` works.
+- [x] **sentinella.alpina** — Same firewalld fix; `ping -6` works.
+- [x] **Dual default routes** — Root cause: Pi-hole DHCPv6/RA was enabled. Disabled via `[dhcp] ipv6=false` in pihole.toml. All hosts now single default via OPNsense.
+- [x] **Portocali NAS** — IPv6 enabled in DSM network settings; SLAAC `2603:...:7656:3cff:fe30:2dfc` (EUI-64).
+- [x] **Sentinella services** — Added `[::]:80/443/1514` port bindings and `enable_ipv6: true` on Podman observability network; Grafana/Prometheus/Loki accessible over IPv6.
 
-#### sentinella.alpina — Same Firewalld Issue
-```bash
-ssh alfa@sentinella.alpina
-sudo firewall-cmd --permanent --add-protocol=ipv6-icmp
-sudo firewall-cmd --reload
-ping6 -c4 google.com
-```
+### Remaining
 
-### Priority 2: Optional Improvements
+#### HAOS (homeassistant.alpina) — No Global IPv6
+HAOS appliance has no visible global IPv6 address. Investigate if HAOS supports IPv6 or document as a known limitation.
 
 #### Upgrade PD to /56 (Future VLANs)
 Currently getting a single `/64`. Requesting `/56` from Charter/Spectrum would give 256 subnets for future VLANs. **Risk:** May change the current prefix, breaking all SLAAC addresses temporarily.
@@ -235,21 +238,18 @@ In OPNsense web UI: Interfaces > WAN (igb3) > IPv6 Configuration:
 - Prefix delegation size: `/56`
 - Send IPv6 prefix hint: Checked
 
-#### Investigate Dual Default Routes
-Some hosts show two IPv6 default routes. Check if Pi-hole is inadvertently sending RAs:
-```bash
-ssh -i ~/.ssh/id_ed25519 pi@pihole 'ps aux | grep -i radvd'
-```
-
 #### Pi-hole v6 FTL AAAA Bug
 `gateway.alpina` and subdomain-style hostnames (`grafana.sentinella.alpina`) don't resolve AAAA from custom.list despite entries being present. Consider:
 - Filing a Pi-hole v6 bug report
 - Using the Pi-hole v6 web UI "Local DNS Records" to add AAAA entries instead of custom.list
 - Using CNAME records pointing subdomains to `sentinella.alpina` (which resolves AAAA correctly)
 
-#### Docker/Podman IPv6
-- Komga (Docker): `docker network inspect bridge | grep EnableIPv6` — likely `false`
-- Sentinella (Podman): Check if container port bindings include IPv6
+#### Add AAAA Records
+- Add `portocali.alpina` AAAA record to Pi-hole custom.list.
+- Add `aria.alpina` AAAA record to Pi-hole custom.list.
+
+#### Rogue ULA RAs
+Route-info-only RAs for `fde6:19bd:3ffd::/64` from MACs `04:99:b9:71:36:9d`, `04:99:b9:84:18:17`, `ec:a9:07:07:22:bf`, `ac:bc:b5:db:26:fa` (router-lifetime=0, low impact). Identify source devices and disable.
 
 #### Grafana IPv6 Panels
 Add to Command Center dashboard:
