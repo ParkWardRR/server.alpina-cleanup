@@ -32,7 +32,7 @@ Single source for network/host facts, access, IPv6 status, and app notes.
 | sentinella.alpina | 172.16.19.94 | 2603:8001:7400:fa9a:be24:11ff:fe95:2956 | Observability stack |
 | aria.alpina | 172.16.18.230 | 2603:8001:7400:fa9a:eaff:1eff:fed3:4683 | Proxmox host |
 | homeassistant.alpina | 172.16.77.77 | — | HAOS appliance (no global IPv6 yet) |
-| portocali.alpina | 172.16.21.21 | — | NAS (Xpenology); SNMP metrics + syslog to Sentinella |
+| portocali.alpina | 172.16.21.21 | 2603:8001:7400:fa9a:7656:3cff:fe30:2dfc | NAS (Xpenology); SNMP metrics + syslog to Sentinella |
 
 ## SSH Access
 ```bash
@@ -43,6 +43,7 @@ ssh alfa@komga.alpina                          # Komga
 ssh alfa@sentinella.alpina                     # Monitoring
 ssh root@aria.alpina                           # Proxmox
 ssh alfa@home.alpina                           # Home server
+ssh alfa@portocali.alpina                      # NAS (Xpenology)
 ssh root@homeassistant.local                   # Home Assistant (HAOS)
 ```
 
@@ -50,12 +51,13 @@ ssh root@homeassistant.local                   # Home Assistant (HAOS)
 - Prefix: `2603:8001:7400:fa9a::/64` via DHCPv6-PD on OPNsense.
 - OPNsense RAs: SLAAC + RDNSS (Pi-hole link-local) + DNSSL (alpina); firewall allows ICMPv6/NDP/DHCPv6.
 - Pi-hole: dual-stack DNS; DHCPv6/RA **disabled** to stop rogue RAs.
-- Working dual-stack hosts: gateway, pihole, ntp, komga, home, sentinella, aria (vmbr0), all with SLAAC.
+- Working dual-stack hosts: gateway, pihole, ntp, komga, home, sentinella, aria (vmbr0), portocali — all with SLAAC.
 - Outstanding: HAOS still lacks global IPv6; route-info-only RAs for ULA `fde6:19bd:3ffd::/64` from MACs `04:99:b9:71:36:9d`, `04:99:b9:84:18:17`, `ec:a9:07:07:22:bf`, `ac:bc:b5:db:26:fa` (identify/disable at source).
 - Recent fixes (2026-02-06):
   - Proxmox: added `/etc/sysctl.d/50-ipv6.conf` with `accept_ra=2` (vmbr0/all); now has global address and internet v6 reachability.
   - home.alpina & sentinella.alpina: firewalld now allows `ipv6-icmp`; after clearing Pi-hole RA, single default via gateway and `ping -6` succeeds.
   - Pi-hole: `[dhcp] ipv6=false` in `pihole.toml`; restart FTL; no more default-route RAs from Pi-hole.
+  - Portocali NAS: IPv6 enabled in DSM; SLAAC address `2603:...:fe30:2dfc` (EUI-64); default via gateway.
 
 ## Application Notes
 
@@ -80,4 +82,5 @@ ssh root@homeassistant.local                   # Home Assistant (HAOS)
 ### Open Actions
 - Identify devices sending ULA route-info RAs; disable RA on those MACs.
 - Add HAOS IPv6 (if possible) or document limitation.
+- Add AAAA record for `portocali.alpina` in Pi-hole custom.list.
 - Optional: request /56 PD from ISP (may change prefix; plan renumbering beforehand).

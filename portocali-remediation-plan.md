@@ -29,7 +29,8 @@
 | Component | Value |
 |-----------|-------|
 | Hostname | Portocali |
-| IP | 172.16.21.21 |
+| IPv4 | 172.16.21.21 |
+| IPv6 | 2603:8001:7400:fa9a:7656:3cff:fe30:2dfc (EUI-64 via SLAAC) |
 | Platform | Xpenology DS3622xs+ (Arc bootloader) |
 | DSM | 7.3.2-86009 (GM, 2025-11-26) |
 | Kernel | 4.4.302+ |
