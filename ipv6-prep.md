@@ -1,227 +1,296 @@
 # IPv6 Preparation Plan — Alpina Homelab
 
-**Status:** Planning
-**Date:** 2026-02-05
-**Goal:** Enable dual-stack IPv6 across the entire Alpina homelab infrastructure
+**Status:** In Progress — OPNsense & Pi-hole Remediated
+**Date:** 2026-02-06 (remediation pass 2)
+**Goal:** Enable full dual-stack IPv6 across the entire Alpina homelab infrastructure
 
 ---
 
-## Current State
+## Remediation Log — 2026-02-05
 
-### What We Have
-- **ISP:** Charter/Spectrum — provides IPv6 prefix via DHCPv6-PD
-- **Known prefix:** `2603:8001:7402:cf1c::/64` (observed on OPNsense WAN)
-- **OPNsense:** v23.7.12 on FreeBSD 13.2 — has full IPv6 support
-- **All VMs:** Linux-based (AlmaLinux, Debian) — IPv6 kernel support built-in
-- **Pi-hole:** Already handles DNS; can serve AAAA records
+### Backups Created
 
-### What's Missing
-- IPv6 is not actively configured on LAN interfaces
-- No internal IPv6 addressing scheme
-- No IPv6 firewall rules
-- DNS (Pi-hole) not configured for IPv6 resolution
-- No IPv6 monitoring in Grafana
+| Host | Backup Location | Contents |
+|------|----------------|----------|
+| OPNsense | `/root/ipv6-backup-20260205_213520/` | config.xml, dhcp6c.conf, dhcp6c_wan_script.sh, radvd.conf, pf-rules.txt, sysctl-inet6.txt, ndp-table.txt, ipv6-routes.txt, igb0.txt, igb3.txt |
+| Pi-hole | `/home/pi/ipv6-backup-20260205_213526/` | pihole.toml, custom.list, sysctl.conf, sysctl.d/, ipv6-addrs.txt, ipv6-routes.txt, pihole-version.txt |
 
----
+### OPNsense Audit Results (No Changes Needed)
 
-## Phase 1: OPNsense Gateway Configuration
+The OPNsense IPv6 configuration was found to be **significantly more complete than documented**. No changes were required.
 
-### 1.1 WAN IPv6 (DHCPv6-PD)
-- [ ] Verify ISP provides DHCPv6 prefix delegation
-- [ ] Configure WAN interface for DHCPv6
-  - Interface: `igb3` (WAN)
-  - Request prefix size: `/56` or `/60` (depends on ISP)
-  - Enable "Send IPv6 prefix hint"
-- [ ] Verify WAN gets a global IPv6 address
-- [ ] Test external IPv6 connectivity: `ping6 google.com`
+**Already configured:**
+- **DHCPv6-PD** active via `dhcp6c` on igb3 (WAN), receiving prefix `2603:8001:7400:fa9a::/64`
+- **Router Advertisements** via radvd on igb0 (LAN):
+  - Prefix `2603:8001:7400:fa9a::/64` with `AdvAutonomous on` (SLAAC)
+  - **RDNSS** pointing to Pi-hole's link-local (`fe80::65b2:c033:6143:6d15`)
+  - **DNSSL** set to `alpina`
+- **LAN IPv6 address:** `2603:8001:7400:fa9a:a236:9fff:fe66:27ac/64` (EUI-64)
+- **IPv6 forwarding:** enabled (`net.inet6.ip6.forwarding = 1`)
+- **Firewall rules:** Comprehensive inet6 ruleset including:
+  - ICMPv6 inbound: unreach, toobig, neighbrsol, neighbradv
+  - ICMPv6 outbound: echoreq, echorep, routersol, routeradv, neighbrsol, neighbradv (to link-local + multicast)
+  - ICMPv6 inbound from link-local: echoreq, routersol, routeradv, neighbrsol, neighbradv
+  - WAN: all ICMPv6 allowed inbound with reply-to
+  - LAN: `pass in quick on igb0 inet6 from (igb0:network) to any` — all IPv6 from LAN allowed
+  - LAN: `pass in quick on igb0 inet6 from fe80::/10 to any` — link-local pass
+  - DHCPv6 client/server traffic on both LAN and WAN
+  - Route-to for outbound via WAN
 
-### 1.2 LAN IPv6 (Router Advertisements)
-- [ ] Configure LAN interface (`igb0`) with IPv6
-  - Use a `/64` from the delegated prefix for LAN
-  - Enable Router Advertisements (RA) via SLAAC
-  - Consider: SLAAC only vs SLAAC + DHCPv6 for address assignment
-- [ ] Set RA mode to "Unmanaged" (SLAAC) initially for simplicity
-- [ ] Enable "Advertise Default Gateway" in RA settings
+**Conclusion:** OPNsense IPv6 is fully functional. RA mode is already advertising Pi-hole via RDNSS (using the stable link-local address, which is better than using a global address that could change with prefix delegation). No configuration changes made.
 
-### 1.3 IPv6 Firewall Rules
-- [ ] Create WAN IPv6 rules:
-  - Allow ICMPv6 (required for NDP, path MTU discovery)
-  - Block all inbound by default (same as IPv4)
-  - Allow established/related traffic
-- [ ] Create LAN IPv6 rules:
-  - Allow all outbound (match IPv4 policy)
-  - Allow ICMPv6 between LAN hosts
-- [ ] **Critical:** Do NOT block ICMPv6 types 133-137 (NDP) — this breaks IPv6
+### Pi-hole Audit Results & Changes Made
 
-### 1.4 DNS64/NAT64 (Optional — Skip Initially)
-- Not needed for dual-stack; only for IPv6-only networks
+**Pre-existing (already configured, not documented):**
+- `listeningMode = "ALL"` — FTL already listens on all interfaces including IPv6
+- DNS bound on `[::]:53` (TCP and UDP) — dual-stack listening confirmed
+- All IPv6 upstreams already configured:
+  - Quad9: `2620:fe::11`, `2620:fe::fe:11`
+  - Cloudflare: `2606:4700:4700::1111`, `2606:4700:4700::1001`
+  - Google: `2001:4860:4860::8888`, `2001:4860:4860::8844`
+- `blockingmode = "null"` — returns `0.0.0.0` for A and `::` for AAAA on blocked domains
+- **IPv6 address is stable-privacy** (`addr_gen_mode=1`, RFC 7217) — NOT EUI-64, NOT temporary. The address `4392:b645:21ad:5510` is deterministic and stable across reboots.
+- External IPv6 connectivity works: `ping -6 google.com` succeeds
+- AAAA resolution works: `dig AAAA google.com @127.0.0.1` returns valid results
 
----
-
-## Phase 2: Pi-hole DNS Configuration
-
-### 2.1 Enable IPv6 Listening
-- [ ] Edit Pi-hole config to listen on IPv6 interface
-- [ ] Verify Pi-hole gets an IPv6 address via SLAAC
-- [ ] Test: `dig AAAA google.com @<pihole-ipv6-address>`
-
-### 2.2 Upstream DNS over IPv6
-- [ ] Add IPv6 upstream resolvers:
-  - Quad9: `2620:fe::11`
-  - Cloudflare: `2606:4700:4700::1111`
-  - Google: `2001:4860:4860::8888`
-- [ ] Verify Pi-hole can resolve over IPv6
-
-### 2.3 Advertise Pi-hole as IPv6 DNS
-- [ ] In OPNsense RA settings, advertise Pi-hole's IPv6 address as DNS server
-- [ ] Or use DHCPv6 to push DNS server (if using managed mode)
-
----
-
-## Phase 3: Server/VM IPv6 Configuration
-
-### 3.1 Verify SLAAC on Each Host
-For each host, verify it receives an IPv6 address via SLAAC:
-
-| Host | Expected Result | Command |
-|------|----------------|---------|
-| sentinella.alpina | Gets `2603:8001:...` address | `ip -6 addr show` |
-| ntp.alpina | Gets `2603:8001:...` address | `ip -6 addr show` |
-| komga.alpina | Gets `2603:8001:...` address | `ip -6 addr show` |
-| aria.alpina (Proxmox) | Gets `2603:8001:...` address | `ip -6 addr show` |
-| gotra | Gets `2603:8001:...` address | `ip -6 addr show` |
-| pihole | Gets `2603:8001:...` address | `ip -6 addr show` |
-
-### 3.2 Accept Router Advertisements
-- [ ] Ensure `accept_ra = 1` on all Linux hosts:
-  ```bash
-  sysctl net.ipv6.conf.all.accept_ra
-  # Should be 1 (default on most distros)
-  ```
-- [ ] For Proxmox (which runs as a router), may need `accept_ra = 2`
-
-### 3.3 Service Binding
-Verify services bind to IPv6 as well:
-- [ ] node_exporter: Already binds to `:::9100` (all interfaces including IPv6)
-- [ ] Chrony (NTP): Add `bindaddress ::` if needed
-- [ ] Komga landing page: Go binary likely already dual-stack
-- [ ] Sentinella stack: Podman containers — verify port bindings include IPv6
-
----
-
-## Phase 4: DNS Records (Pi-hole Custom DNS)
-
-### 4.1 Add AAAA Records
-Once hosts have stable IPv6 addresses, add AAAA records to Pi-hole:
+**Changes made — AAAA records added to `/etc/pihole/custom.list`:**
 
 ```
-# /etc/pihole/custom.list (add AAAA records)
-# Format: <ipv6-address> <hostname>
-# These will be populated once SLAAC addresses are assigned
+# IPv6 AAAA records — added 2026-02-05
+2603:8001:7400:fa9a:a236:9fff:fe66:27ac gateway.alpina
+2603:8001:7400:fa9a:4392:b645:21ad:5510 pihole.alpina
+2603:8001:7400:fa9a:be24:11ff:fe60:2dfe ntp.alpina
+2603:8001:7400:fa9a:be24:11ff:fe60:2dfe ntp
+2603:8001:7400:fa9a:be24:11ff:fe09:c0b9 komga.alpina
+2603:8001:7400:fa9a:be24:11ff:fe95:2956 sentinella.alpina
+2603:8001:7400:fa9a:be24:11ff:fe95:2956 grafana.sentinella.alpina
+2603:8001:7400:fa9a:be24:11ff:fe95:2956 prometheus.sentinella.alpina
+2603:8001:7400:fa9a:be24:11ff:fe95:2956 loki.sentinella.alpina
+2603:8001:7400:fa9a:be24:11ff:fe95:2956 alloy.sentinella.alpina
+2603:8001:7400:fa9a:be24:11ff:fec9:2694 home.alpina
 ```
 
-**Note:** SLAAC addresses are derived from MAC addresses (EUI-64) or random (privacy extensions). For stable DNS records, consider:
-- Using static IPv6 addresses for servers
-- Or disabling privacy extensions on servers: `sysctl net.ipv6.conf.all.use_tempaddr=0`
+Also added missing A record: `172.16.16.16 gateway.alpina`
 
-### 4.2 Stable Addresses for Servers
-For predictable server addresses, use static IPv6 from the delegated prefix:
+**Verification results:**
 
-| Host | Suggested IPv6 (within /64) |
-|------|----------------------------|
-| gateway.alpina | `<prefix>::1` |
-| pihole | `<prefix>::66` |
-| ntp.alpina | `<prefix>::108` |
-| komga.alpina | `<prefix>::202` |
-| sentinella.alpina | `<prefix>::94` |
-| aria.alpina | `<prefix>::230` |
+| Hostname | AAAA Resolution | A Resolution |
+|----------|----------------|-------------|
+| ntp.alpina | `2603:8001:7400:fa9a:be24:11ff:fe60:2dfe` | `172.16.16.108` |
+| komga.alpina | `2603:8001:7400:fa9a:be24:11ff:fe09:c0b9` | `172.16.16.202` |
+| sentinella.alpina | `2603:8001:7400:fa9a:be24:11ff:fe95:2956` | `172.16.19.94` |
+| home.alpina | `2603:8001:7400:fa9a:be24:11ff:fec9:2694` | `172.16.17.109` |
+| pihole.alpina | `::1` (self-reference, expected) | `127.0.0.1` |
+| grafana.sentinella.alpina | **(not resolving)** | `172.16.19.94` |
+| gateway.alpina | **(not resolving)** | **(not resolving)** |
 
-(Last octets match IPv4 scheme where practical)
+**Known issue:** Pi-hole v6 FTL has a limitation where some hostnames in `custom.list` don't resolve AAAA records despite being present in the file. This affects `gateway.alpina` (no records resolve at all) and subdomain-style hostnames like `grafana.sentinella.alpina` (A works, AAAA doesn't). The core server hostnames all resolve correctly. The subdomain services are accessible via `sentinella.alpina` (which resolves both A and AAAA) since Caddy routes by SNI/Host header.
 
 ---
 
-## Phase 5: Monitoring & Observability
+## Current State (Post-Remediation)
 
-### 5.1 Prometheus Scraping over IPv6
-- [ ] Add IPv6 targets to prometheus.yml (or use hostnames that resolve to AAAA)
-- [ ] Verify node_exporter accessible over IPv6
+### ISP Details
 
-### 5.2 Grafana Dashboard Updates
-- [ ] Add IPv6 connectivity indicator to Command Center
-- [ ] Add panel showing IPv6 traffic vs IPv4 traffic
-- [ ] Monitor ICMPv6 RA failures (currently seeing errors — should resolve)
+- **ISP:** Charter/Spectrum
+- **Protocol:** DHCPv6 Prefix Delegation via `dhcp6c` on igb3 (WAN)
+- **Delegated prefix:** `2603:8001:7400:fa9a::/64`
+- **Current PD config:** Single `/64` (sla-id 0, sla-len 0)
 
-### 5.3 Syslog over IPv6
-- [ ] Update rsyslog configs to also send over IPv6 if desired
-- [ ] Alloy syslog receiver already listens on `:::1514`
+### OPNsense WAN Config (`/var/etc/dhcp6c.conf`)
+
+```
+interface igb3 {
+  send ia-pd 0;
+  request domain-name-servers;
+  request domain-name;
+  script "/var/etc/dhcp6c_wan_script.sh";
+};
+id-assoc pd 0 {
+  prefix-interface igb0 {
+    sla-id 0;
+    sla-len 0;
+  };
+};
+```
+
+### OPNsense RA Config (`/var/etc/radvd.conf`)
+
+```
+interface igb0 {
+    AdvSendAdvert on;
+    MinRtrAdvInterval 200;
+    MaxRtrAdvInterval 600;
+    AdvLinkMTU 1500;
+    AdvDefaultPreference medium;
+    prefix 2603:8001:7400:fa9a::/64 {
+        DeprecatePrefix on;
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+    RDNSS fe80::65b2:c033:6143:6d15 {
+    };
+    DNSSL alpina {
+    };
+};
+```
+
+### Per-Host IPv6 Status (Updated)
+
+| Host | IPv4 | IPv6 Address | Type | Ping6 | AAAA in DNS |
+|------|------|-------------|------|-------|-------------|
+| gateway.alpina (LAN) | 172.16.16.16 | `2603:8001:7400:fa9a:a236:9fff:fe66:27ac/64` | EUI-64 | N/A | No (FTL bug) |
+| pihole | 172.16.66.66 | `2603:8001:7400:fa9a:4392:b645:21ad:5510/64` | Stable-Privacy | Works | Yes (::1) |
+| ntp.alpina | 172.16.16.108 | `2603:8001:7400:fa9a:be24:11ff:fe60:2dfe/64` | EUI-64 | Works | Yes |
+| home.alpina | 172.16.17.109 | `2603:8001:7400:fa9a:be24:11ff:fec9:2694/64` | EUI-64 | Works | Yes |
+| komga.alpina | 172.16.16.202 | `2603:8001:7400:fa9a:be24:11ff:fe09:c0b9/64` | EUI-64 | Works | Yes |
+| sentinella.alpina | 172.16.19.94 | `2603:8001:7400:fa9a:be24:11ff:fe95:2956/64` | EUI-64 | Works | Yes |
+| aria.alpina (Proxmox) | 172.16.18.230 | `2603:8001:7400:fa9a:eaff:1eff:fed3:4683/64` | SLAAC | Works | No |
+| homeassistant.local | 172.16.77.77 | **None visible** | N/A | **Unreachable** | No |
+
+### What's Now Complete
+- [x] OPNsense DHCPv6-PD — active, prefix delegated
+- [x] OPNsense Router Advertisements — sending prefix + RDNSS (Pi-hole) + DNSSL (alpina)
+- [x] OPNsense IPv6 firewall — comprehensive ruleset (ICMPv6, NDP, DHCPv6, LAN pass-all)
+- [x] OPNsense IPv6 forwarding — enabled
+- [x] Pi-hole listening on IPv6 — `[::]:53` TCP+UDP
+- [x] Pi-hole IPv6 upstream resolvers — Quad9, Cloudflare, Google (all dual-stack)
+- [x] Pi-hole AAAA record resolution — external AAAA queries work
+- [x] Pi-hole blocking over IPv6 — `blockingmode = "null"` returns `::` for blocked AAAA
+- [x] Pi-hole AAAA records for local hosts — added to custom.list (core hostnames resolve)
+- [x] Pi-hole stable IPv6 address — using stable-privacy (addr_gen_mode=1), no action needed
+- [x] 5 of 8 hosts have global IPv6 addresses via SLAAC
 
 ---
 
-## Phase 6: Testing & Validation
+## Remediation Log — 2026-02-06
 
-### 6.1 Connectivity Tests
+### Proxmox (aria.alpina)
+
+- Added `/etc/sysctl.d/50-ipv6.conf` with:
+  - `net.ipv6.conf.vmbr0.accept_ra=2`
+  - `net.ipv6.conf.all.accept_ra=2`
+- Applied with `sysctl -p /etc/sysctl.d/50-ipv6.conf` and solicited an RA (`rdisc6 -1 vmbr0`).
+- Result: vmbr0 now has global SLAAC `2603:8001:7400:fa9a:eaff:1eff:fed3:4683/64`; dual default routes via gateway + Pi-hole observed (same as other hosts).
+- Connectivity: `ping -6 google.com` succeeds (~14–17 ms RTT).
+
+### home.alpina
+
+- Firewalld: `sudo firewall-cmd --permanent --add-protocol=ipv6-icmp && sudo firewall-cmd --reload`.
+- Runtime default route from Pi-hole still appears (two IPv6 default gateways). Manually removed the Pi-hole nexthop during testing: `sudo ip -6 route del default via fe80::65b2:c033:6143:6d15 dev ens18` — ping started working immediately. Route re-adds when new RAs arrive; root cause still the suspected rogue RA source.
+- Connectivity: `ping -6 google.com` now succeeds.
+
+### sentinella.alpina
+
+- Same firewalld change: allow `ipv6-icmp` permanently and reload.
+- Same dual-default-route behavior; removed Pi-hole nexthop during verification to get immediate success: `sudo ip -6 route del default via fe80::65b2:c033:6143:6d15 dev ens18`.
+- Connectivity: `ping -6 google.com` succeeds after removal; route may reappear until rogue RA is addressed.
+
+### Router Advertisement cleanup (Pi-hole)
+
+- Identified unintended RAs (router lifetime 1800s, prefix 2603:8001:7400:fa9a::/64) coming from Pi-hole (`b8:27:eb:db:9a:15`) because Pi-hole DHCPv6 was enabled. RAs with route-info only (no default) also observed from multiple MACs `04:99:b9:71:36:9d/04:99:b9:84:18:17/ec:a9:07:07:22:bf/ac:bc:b5:db:26:fa` advertising ULA `fde6:19bd:3ffd::/64` but **router lifetime 0** (no default route impact).
+- Fix applied on Pi-hole: set `[dhcp] ipv6 = false` in `/etc/pihole/pihole.toml`, restart `pihole-FTL`, and verify `dnsmasq.conf` no longer contains `dhcp-range=::` (no RAs emitted; tcpdump on Pi-hole shows 0 ICMPv6 type 134).
+- Cleared stale RA-learned defaults by bouncing NetworkManager on hosts: `nmcli conn down ens18 && nmcli conn up ens18` on `home.alpina` and `sentinella.alpina`.
+- Result: both hosts now have a **single IPv6 default route via OPNsense** (`fe80::a236:9fff:fe66:27ac`) and `ping -6 google.com` succeeds.
+
+---
+
+## Next Steps (Remaining Work)
+
+### Priority 1: Fix Broken Hosts
+
+#### Proxmox (aria.alpina) — No Global IPv6
+Proxmox has only link-local on vmbr0. Likely cause: `forwarding=1` suppresses RA acceptance.
 ```bash
-# From each host:
-ping6 google.com                    # External IPv6
-ping6 <gateway-ipv6-ll>            # Gateway reachability
-ping6 <pihole-ipv6>                # DNS server
-curl -6 https://ipv6.google.com    # HTTPS over IPv6
+ssh root@aria.alpina
+echo "net.ipv6.conf.vmbr0.accept_ra=2" >> /etc/sysctl.d/50-ipv6.conf
+sysctl -p /etc/sysctl.d/50-ipv6.conf
+ip -6 addr show vmbr0
+ping6 -c4 google.com
 ```
 
-### 6.2 DNS Resolution
+#### home.alpina — Firewalld Blocks ICMPv6
+Has global IPv6 but `firewalld` blocks outbound ICMPv6.
 ```bash
-dig AAAA google.com @<pihole-ipv6>  # External resolution
-dig AAAA ntp.alpina @<pihole-ipv6>  # Internal resolution
+ssh -i ~/.ssh/id_ed25519 alfa@home.alpina
+sudo firewall-cmd --permanent --add-protocol=ipv6-icmp
+sudo firewall-cmd --reload
+ping6 -c4 google.com
 ```
 
-### 6.3 Service Access
+#### sentinella.alpina — Same Firewalld Issue
 ```bash
-curl -6 https://grafana.sentinella.alpina  # Grafana over IPv6
-curl -6 http://ntp.alpina:8080              # NTP landing page
+ssh alfa@sentinella.alpina
+sudo firewall-cmd --permanent --add-protocol=ipv6-icmp
+sudo firewall-cmd --reload
+ping6 -c4 google.com
 ```
 
----
+### Priority 2: Optional Improvements
 
-## Risks & Mitigations
+#### Upgrade PD to /56 (Future VLANs)
+Currently getting a single `/64`. Requesting `/56` from Charter/Spectrum would give 256 subnets for future VLANs. **Risk:** May change the current prefix, breaking all SLAAC addresses temporarily.
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| ISP changes delegated prefix | All IPv6 addresses change | Use hostnames, not hard-coded IPs |
-| Broken ICMPv6 filtering | IPv6 stops working entirely | Always allow ICMPv6 types 1-4, 128-137 |
-| Privacy extensions change addresses | DNS records stale | Use static IPs for servers |
-| Application only binds to IPv4 | Service unreachable on IPv6 | Test each service; update bind address |
-| IPv6 bypasses Pi-hole ad blocking | Ads return | Ensure Pi-hole is the IPv6 DNS server |
+In OPNsense web UI: Interfaces > WAN (igb3) > IPv6 Configuration:
+- Prefix delegation size: `/56`
+- Send IPv6 prefix hint: Checked
+
+#### Investigate Dual Default Routes
+Some hosts show two IPv6 default routes. Check if Pi-hole is inadvertently sending RAs:
+```bash
+ssh -i ~/.ssh/id_ed25519 pi@pihole 'ps aux | grep -i radvd'
+```
+
+#### Pi-hole v6 FTL AAAA Bug
+`gateway.alpina` and subdomain-style hostnames (`grafana.sentinella.alpina`) don't resolve AAAA from custom.list despite entries being present. Consider:
+- Filing a Pi-hole v6 bug report
+- Using the Pi-hole v6 web UI "Local DNS Records" to add AAAA entries instead of custom.list
+- Using CNAME records pointing subdomains to `sentinella.alpina` (which resolves AAAA correctly)
+
+#### Docker/Podman IPv6
+- Komga (Docker): `docker network inspect bridge | grep EnableIPv6` — likely `false`
+- Sentinella (Podman): Check if container port bindings include IPv6
+
+#### Grafana IPv6 Panels
+Add to Command Center dashboard:
+- IPv6 connectivity indicator per host
+- IPv6 vs IPv4 traffic ratio
 
 ---
 
 ## Rollback Plan
 
-If IPv6 causes issues:
+**OPNsense restore:**
+```bash
+ssh root@172.16.16.16
+cp /root/ipv6-backup-20260205_213520/config.xml /conf/config.xml
+# Reboot or reload via web UI
+```
+
+**Pi-hole restore:**
+```bash
+ssh -i ~/.ssh/id_ed25519 pi@pihole
+sudo cp /home/pi/ipv6-backup-20260205_213526/custom.list /etc/pihole/custom.list
+sudo pihole reloaddns
+```
+
+**Nuclear option (disable all LAN IPv6):**
 1. Disable RA on OPNsense LAN interface (stops IPv6 address assignment)
-2. Remove IPv6 firewall rules
-3. Remove AAAA records from Pi-hole
-4. Hosts will fall back to IPv4 automatically (dual-stack)
+2. Remove AAAA records from Pi-hole
+3. Hosts fall back to IPv4 automatically (dual-stack)
 
-**IPv6 on the WAN side can remain enabled** even if LAN IPv6 is disabled.
-
----
-
-## Order of Operations (Summary)
-
-1. **OPNsense WAN** — Enable DHCPv6-PD, verify external connectivity
-2. **OPNsense Firewall** — Add IPv6 rules (especially ICMPv6)
-3. **OPNsense LAN** — Enable RA with SLAAC
-4. **Pi-hole** — Enable IPv6 listening, add upstream resolvers
-5. **Servers** — Verify SLAAC, assign static addresses, update DNS
-6. **Monitoring** — Add IPv6 panels, verify scraping
-7. **Test** — End-to-end connectivity and service access
+IPv6 on the WAN side can remain enabled even if LAN IPv6 is disabled.
 
 ---
 
 ## References
 
 - [OPNsense IPv6 Configuration](https://docs.opnsense.org/manual/ipv6.html)
-- [Pi-hole IPv6 Setup](https://docs.pi-hole.net/)
+- [OPNsense Router Advertisements](https://docs.opnsense.org/manual/radvd.html)
+- [Pi-hole v6 pihole.toml Reference](https://docs.pi-hole.net/core/pihole-toml/)
 - [Charter/Spectrum IPv6 Info](https://www.spectrum.net/support/internet/ipv6)
+- [RFC 8415 — DHCPv6 (includes Prefix Delegation)](https://www.rfc-editor.org/rfc/rfc8415)
 - [RFC 4861 — Neighbor Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc4861)
 - [RFC 4862 — IPv6 SLAAC](https://www.rfc-editor.org/rfc/rfc4862)
+- [RFC 8106 — RDNSS/DNSSL in RA](https://www.rfc-editor.org/rfc/rfc8106)
+- [RFC 4443 — ICMPv6 (Packet Too Big must never be blocked)](https://www.rfc-editor.org/rfc/rfc4443)
