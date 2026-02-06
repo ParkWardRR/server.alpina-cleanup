@@ -21,17 +21,19 @@ A comprehensive observability platform providing real-time insights into the Alp
 - [x] OPNsense firewall
 - [x] NTP server (chrony)
 - [x] Gotra application server
+- [x] Portocali NAS (syslog-ng → Alloy)
 
 ### Metrics Sources Active
 - [x] Node exporter on all Linux hosts (6 hosts: sentinella, ntp, gotra, aria, pihole, komga)
 - [x] PVE exporter for Proxmox VM metrics (9 VMs monitored)
+- [x] SNMP exporter for portocali NAS (Synology OIDs: disks, RAID, temp, services, I/O)
 - [x] Prometheus self-monitoring
 - [x] Grafana metrics
 - [x] Loki metrics
 - [x] Alloy metrics
 
 ### Dashboards
-- [x] Alpina Homelab Command Center (master dashboard, 44 panels, 9 sections)
+- [x] Alpina Homelab Command Center (master dashboard, 68 panels, 10 sections)
 - [x] System Metrics dashboard
 - [x] Proxmox VMs dashboard
 - [x] NTP Time Sync dashboard
@@ -91,6 +93,7 @@ A comprehensive observability platform providing real-time insights into the Alp
 
 ### Metrics Expansion
 - [x] Node exporter on all Linux hosts
+- [x] SNMP exporter for Synology/Xpenology NAS (portocali)
 - [ ] cAdvisor for container metrics
 - [ ] Custom application metrics
 - [ ] Network bandwidth monitoring
@@ -151,9 +154,9 @@ A comprehensive observability platform providing real-time insights into the Alp
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Log sources | 5+ | 5 (Proxmox, Pi-hole, OPNsense, NTP, Gotra) |
-| Metrics sources | 6+ | 6 hosts with node_exporter + PVE exporter |
-| Dashboards | 5+ | 8 dashboards + 1 master command center |
+| Log sources | 5+ | 6 (Proxmox, Pi-hole, OPNsense, NTP, Gotra, Portocali) ✅ |
+| Metrics sources | 6+ | 6 node_exporter + PVE exporter + SNMP exporter ✅ |
+| Dashboards | 5+ | 8 dashboards + 1 master command center (68 panels, 10 sections) ✅ |
 | Dashboard load time | <3 seconds | ~2 seconds |
 | Log retention | 24 months | 24 months ✅ |
 | Metrics retention | 24 months | 24 months ✅ |

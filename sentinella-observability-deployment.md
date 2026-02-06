@@ -17,6 +17,7 @@
 | Prometheus | Metrics collection | 9090 | https://prometheus.sentinella.alpina |
 | Loki | Log aggregation | 3100 | https://loki.sentinella.alpina |
 | Alloy | Telemetry collector | 12345, 1514/udp | https://alloy.sentinella.alpina |
+| SNMP Exporter | Synology NAS metrics | 9116 | Internal only |
 
 ---
 
@@ -56,8 +57,10 @@ sudo whoami  # root
 ### Phase 2: Install podman-compose
 ```bash
 sudo dnf install -y python3-pip
-pip3 install --user podman-compose
-# Installed podman-compose 1.5.0
+
+# Install system-wide so the systemd unit can call it reliably.
+sudo pip3 install podman-compose
+podman-compose --version
 ```
 
 ### Phase 3: Create Directory Structure
@@ -108,7 +111,7 @@ sudo systemctl enable observability-stack.service
 ### Phase 9: Start Stack
 ```bash
 cd /opt/observability
-~/.local/bin/podman-compose up -d
+sudo podman-compose up -d
 ```
 
 ### Phase 10: Add DNS Entries
@@ -181,24 +184,24 @@ cd /opt/observability
 ssh alfa@sentinella.alpina
 
 # Start/stop/restart stack
-sudo systemctl start observability-stack
-sudo systemctl stop observability-stack
-sudo systemctl restart observability-stack
+sudo systemctl start observability-stack.service
+sudo systemctl stop observability-stack.service
+sudo systemctl restart observability-stack.service
 
 # View status
-sudo systemctl status observability-stack
-podman ps
+sudo systemctl status observability-stack.service
+sudo podman ps
 
 # View logs
-podman logs grafana
-podman logs prometheus
-podman logs loki
-podman logs alloy
-podman logs caddy
+sudo podman logs grafana
+sudo podman logs prometheus
+sudo podman logs loki
+sudo podman logs alloy
+sudo podman logs caddy
 
 # Restart individual service
 cd /opt/observability
-~/.local/bin/podman-compose restart grafana
+sudo podman-compose restart grafana
 ```
 
 ---
@@ -207,7 +210,7 @@ cd /opt/observability
 
 ```bash
 # Check all containers running
-podman ps
+sudo podman ps
 
 # Test Grafana
 curl -k https://grafana.sentinella.alpina/api/health
@@ -223,6 +226,26 @@ curl -k -u admin:PASSWORD https://alloy.sentinella.alpina/-/ready
 
 # Test syslog ingest
 echo "<14>Test message from CLI" | nc -u sentinella.alpina 1514
+```
+
+---
+
+## Troubleshooting
+
+### Loki / Alloy Shows "unhealthy"
+
+If `sudo podman ps` shows `loki` or `alloy` as `unhealthy`, it may be a healthcheck command issue rather than the service actually being down.
+
+Recent `grafana/loki` and `grafana/alloy` images may not include `wget`/`curl`. If your `/opt/observability/compose.yaml` uses `wget` healthchecks, replace them with binary-based checks:
+
+```yaml
+loki:
+  healthcheck:
+    test: ["CMD", "loki", "-version"]
+
+alloy:
+  healthcheck:
+    test: ["CMD", "alloy", "validate", "/etc/alloy/config.alloy"]
 ```
 
 ---
@@ -251,7 +274,7 @@ echo "<14>Test message from CLI" | nc -u sentinella.alpina 1514
 | Firewall | ✅ Only 80, 443, 1514/udp exposed |
 | Internal ports not exposed | ✅ 3000, 9090, 3100, 12345 internal only |
 | Secrets file permissions | ✅ 0600 |
-| Rootless containers | ✅ Running as user alfa |
+| Rootless containers | ⚠️ Not enabled (systemd unit runs Podman as root) |
 | Systemd hardening | ✅ NoNewPrivileges, PrivateTmp, etc. |
 
 ---
@@ -313,7 +336,7 @@ echo "<14>Test message from CLI" | nc -u sentinella.alpina 1514
 
 ### Alpina Homelab — Command Center
 - **UID:** homelab-master
-- Master dashboard with 44 panels across 9 sections
+- Master dashboard with 68 panels across 10 sections
 - Overview: Hosts Online, VMs Running, Avg CPU/Memory, NTP Sync, Log Entries
 - Fleet Health: CPU/Memory/Disk bar gauges + time series for all hosts
 - Proxmox Virtualization: VM status table
@@ -322,6 +345,8 @@ echo "<14>Test message from CLI" | nc -u sentinella.alpina 1514
 - OPNsense Firewall: Firewall events, TCP connections, log stream
 - Network & Storage I/O: Network and disk I/O charts
 - Logs & Events: Log volume, error rate, recent errors
+- Home Assistant: Zigbee/Z-Wave device health
+- **Portocali NAS (Xpenology):** System status, temps, RAID/volume table, disk health, I/O, logs
 - Host Inventory: Summary table with gauge columns
 
 ---
@@ -363,6 +388,37 @@ cat /etc/rsyslog.d/50-remote.conf
 cat /etc/rsyslog.d/50-remote.conf
 # *.* @172.16.19.94:1514
 ```
+
+### Portocali NAS (portocali.alpina) ✅
+```bash
+# syslog-ng configured (DSM 7.3.2 uses syslog-ng)
+cat /etc/syslog-ng/patterndb.d/sentinella-remote.conf
+# destination d_sentinella { udp("172.16.19.94" port(1514)); };
+# log { source(src); destination(d_sentinella); };
+```
+
+---
+
+## SNMP Exporter (Synology NAS Metrics)
+
+Prometheus SNMP Exporter scrapes Synology-specific metrics from portocali NAS via SNMP.
+
+| Setting | Value |
+|---------|-------|
+| Container | snmp-exporter (prom/snmp-exporter:v0.30.1) |
+| Config | /opt/observability/snmp/snmp.yml |
+| Module | synology |
+| Auth | alpina_v2 (community: alpina) |
+| Target | 172.16.21.21 (portocali) |
+| Scrape interval | 120s |
+
+Metrics collected include:
+- synology_system_status, synology_temperature, synology_power_status
+- synology_disk_status/temperature/health_status/bad_sector per disk (13 disks)
+- synology_raid_status/free_size/total_size per RAID array (7 arrays)
+- synology_service_users per service (CIFS, NFS, SSH, etc.)
+- synology_storage_io_bytes_read/written per disk
+- synology_space_io_bytes_read/written per volume
 
 ---
 
@@ -438,11 +494,11 @@ Configure syslog destination: `172.16.19.94:1514 UDP`
 
 ```bash
 # Stop stack
-sudo systemctl stop observability-stack
+sudo systemctl stop observability-stack.service
 
 # Remove containers and volumes (WARNING: deletes data)
 cd /opt/observability
-~/.local/bin/podman-compose down -v
+sudo podman-compose down -v
 
 # Remove config
 sudo rm -rf /opt/observability
