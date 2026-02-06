@@ -336,7 +336,7 @@ alloy:
 
 ### Alpina Homelab — Command Center
 - **UID:** homelab-master
-- Master dashboard with 68 panels across 10 sections
+- Master dashboard with 70 panels across 10 sections
 - Overview: Hosts Online, VMs Running, Avg CPU/Memory, NTP Sync, Log Entries
 - Fleet Health: CPU/Memory/Disk bar gauges + time series for all hosts
 - Proxmox Virtualization: VM status table
@@ -346,8 +346,18 @@ alloy:
 - Network & Storage I/O: Network and disk I/O charts
 - Logs & Events: Log volume, error rate, recent errors
 - Home Assistant: Zigbee/Z-Wave device health
-- **Portocali NAS (Xpenology):** System status, temps, RAID/volume table, disk health, I/O, logs
+- **Portocali NAS (Xpenology):** System status, temps, volume usage stats (Vol2/Vol4), RAID/volume table, disk health, I/O, logs
 - Host Inventory: Summary table with gauge columns
+
+---
+
+## Alerting Rules (Grafana)
+
+Grafana unified alerting rules are provisioned for Portocali:
+- Volume usage warning at 85% and critical at 90%
+- RAID/pool degradation (any `synology_raid_status != 1`)
+
+Rules are stored under a Grafana folder named `Portocali` and linked to the master dashboard panel `RAID / Volume Status` (panel id `207`).
 
 ---
 

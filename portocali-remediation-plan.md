@@ -18,6 +18,7 @@
 | SNMP Metrics (Prometheus) | ✅ Active via snmp-exporter | HIGH |
 | Log Forwarding (Loki) | ✅ syslog-ng → Sentinella | HIGH |
 | Grafana Dashboard | ✅ 13-panel NAS section added | HIGH |
+| Grafana Alert Rules | ✅ Volume usage + RAID degradation | HIGH |
 | Storage Capacity | ⚠️ volumes 2 & 4 at 86-88% | CRITICAL |
 | Auto-Updates | ⚠️ N/A (Xpenology — NEVER auto-update) | INFO |
 
@@ -193,7 +194,7 @@ Verified: target is UP, scrape duration ~1.05s, 471 PDUs returned.
 
 ### 7. Master Dashboard Updated ✅
 
-Added "Portocali NAS (Xpenology)" section to homelab-master dashboard with 13 panels:
+Added "Portocali NAS (Xpenology)" section to homelab-master dashboard with 15 panels:
 
 | Panel | Type | What it shows |
 |-------|------|--------------|
@@ -209,8 +210,19 @@ Added "Portocali NAS (Xpenology)" section to homelab-master dashboard with 13 pa
 | Volume I/O | timeseries | Per-volume read/write bytes/sec |
 | Temperatures | timeseries | System + per-disk temperature history |
 | NAS Logs | logs | Live syslog stream from Loki |
+| Vol 2 Used % | stat | Volume 2 utilization with thresholds |
+| Vol 4 Used % | stat | Volume 4 utilization with thresholds |
 
 ---
+
+## 8. Grafana Alert Rules ✅
+
+Provisioned Grafana unified alert rules on Sentinella:
+- **Volume usage warning:** > 85% used for 10m
+- **Volume usage critical:** > 90% used for 10m
+- **RAID/pool degraded:** any `synology_raid_status != 1` for 5m
+
+Folder: `Portocali` (Grafana)
 
 ## Xpenology / Arc Bootloader Considerations
 
@@ -261,11 +273,11 @@ Added "Portocali NAS (Xpenology)" section to homelab-master dashboard with 13 pa
 ## Follow-ups
 
 - [ ] Disable SSH password auth after confirming key auth is reliable
-- [ ] Verify DSM boot task exists for SNMP (`bash /usr/local/bin/start-snmpd.sh`) and create it if missing
+- [x] Verify DSM boot task exists for SNMP (`bash /usr/local/bin/start-snmpd.sh`) and create it if missing
 - [ ] Consider enabling DSM Auto Block (Control Panel → Security → Protection)
 - [ ] Plan capacity expansion for volume2 (86%) and volume4 (88%)
 - [ ] Monitor Disk 1 bad sectors (93 currently) — replace if count increases
-- [ ] Set up Grafana alert rules for storage capacity and RAID degradation
+- [x] Set up Grafana alert rules for storage capacity and RAID degradation
 
 ---
 

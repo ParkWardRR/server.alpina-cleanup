@@ -33,7 +33,7 @@ A comprehensive observability platform providing real-time insights into the Alp
 - [x] Alloy metrics
 
 ### Dashboards
-- [x] Alpina Homelab Command Center (master dashboard, 68 panels, 10 sections)
+- [x] Alpina Homelab Command Center (master dashboard, 70 panels, 10 sections)
 - [x] System Metrics dashboard
 - [x] Proxmox VMs dashboard
 - [x] NTP Time Sync dashboard
@@ -77,7 +77,7 @@ A comprehensive observability platform providing real-time insights into the Alp
 - [x] Pi-hole DNS parsing
 
 ### Alerting
-- [ ] Grafana alerting rules
+- [x] Grafana alert rules: Portocali volume usage (85/90%) + RAID degradation
 - [ ] Email/webhook notifications
 - [ ] Critical event detection
 
@@ -156,7 +156,7 @@ A comprehensive observability platform providing real-time insights into the Alp
 |--------|--------|---------|
 | Log sources | 5+ | 6 (Proxmox, Pi-hole, OPNsense, NTP, Gotra, Portocali) ✅ |
 | Metrics sources | 6+ | 6 node_exporter + PVE exporter + SNMP exporter ✅ |
-| Dashboards | 5+ | 8 dashboards + 1 master command center (68 panels, 10 sections) ✅ |
+| Dashboards | 5+ | 8 dashboards + 1 master command center (70 panels, 10 sections) ✅ |
 | Dashboard load time | <3 seconds | ~2 seconds |
 | Log retention | 24 months | 24 months ✅ |
 | Metrics retention | 24 months | 24 months ✅ |
