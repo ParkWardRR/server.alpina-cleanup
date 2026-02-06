@@ -9,7 +9,7 @@ Configuration and documentation for the Alpina homelab network.
 | Firewall | gateway.alpina | 172.16.16.16 | 2603:8001:7400:fa9a:a236:9fff:fe66:27ac | OPNsense Web UI |
 | DNS/Ad-block | pihole | 172.16.66.66 | 2603:8001:7400:fa9a:4392:b645:21ad:5510 | Pi-hole Admin |
 | NTP | ntp.alpina | 172.16.16.108 | 2603:8001:7400:fa9a:be24:11ff:fe60:2dfe | [Landing Page](http://ntp.alpina) |
-| Home Assistant | homeassistant.alpina | 172.16.77.77 | — | [Web UI](http://homeassistant.alpina:8123) |
+| Home Assistant | homeassistant.alpina | 172.16.77.77 | 2603:8001:7400:fa9a:d3e5:8d13:1bdd:2331 | [Web UI](http://homeassistant.alpina:8123) |
 | Komga | komga.alpina | 172.16.16.202 | 2603:8001:7400:fa9a:be24:11ff:fe09:c0b9 | [Landing Page](http://komga.alpina) / [Komga UI](http://komga.alpina:25600) |
 | Monitoring | sentinella.alpina | 172.16.19.94 | 2603:8001:7400:fa9a:be24:11ff:fe95:2956 | [Grafana](https://grafana.sentinella.alpina) |
 | Proxmox | aria.alpina | 172.16.18.230 | 2603:8001:7400:fa9a:eaff:1eff:fed3:4683 | Proxmox Web UI |
