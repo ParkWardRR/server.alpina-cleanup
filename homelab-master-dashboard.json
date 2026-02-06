@@ -2380,7 +2380,7 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "{job=\"syslog\"} |~ \"(?i)(filterlog|block|denied|opnsense)\"",
+          "expr": "{source_type=\"firewall\"}",
           "refId": "A"
         }
       ],
@@ -2501,8 +2501,8 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "sum by (action) (count_over_time({job=\"syslog\"} |~ \"filterlog\\\\[\" | regexp \"(?P<action>block|pass)\" [5m]))",
-          "legendFormat": "{{action}}",
+          "expr": "sum by (fw_action) (count_over_time({source_type=\"firewall\"} [5m]))",
+          "legendFormat": "{{fw_action}}",
           "refId": "A"
         }
       ],
@@ -2592,8 +2592,8 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "sum by (interface) (count_over_time({job=\"syslog\"} |~ \"filterlog\\\\[\" | regexp \"(?P<interface>igb[0-9]+|lo[0-9]+|ovpn[a-z0-9]+)\" [5m]))",
-          "legendFormat": "{{interface}}",
+          "expr": "sum by (fw_interface) (count_over_time({source_type=\"firewall\"} [5m]))",
+          "legendFormat": "{{fw_interface}}",
           "refId": "A"
         }
       ],
@@ -2708,8 +2708,8 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "sum by (protocol) (count_over_time({job=\"syslog\"} |~ \"filterlog\\\\[\" |~ \"block\" | regexp \"(?P<protocol>tcp|udp|icmp|igmp)\" [5m]))",
-          "legendFormat": "{{protocol}}",
+          "expr": "sum by (fw_protocol) (count_over_time({source_type=\"firewall\", fw_action=\"block\"} [5m]))",
+          "legendFormat": "{{fw_protocol}}",
           "refId": "A"
         }
       ],
