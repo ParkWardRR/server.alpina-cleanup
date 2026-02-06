@@ -8,7 +8,8 @@ Configuration and documentation for the Alpina homelab network.
 |---------|------|-----|------------|
 | Firewall | gateway.alpina | 172.16.16.16 | OPNsense Web UI |
 | DNS/Ad-block | pihole | 172.16.66.66 | Pi-hole Admin |
-| NTP | ntp.alpina | 172.16.16.108 | [Landing Page](http://ntp.alpina:8080) |
+| NTP | ntp.alpina | 172.16.16.108 | [Landing Page](http://ntp.alpina) |
+| Home Assistant | homeassistant.alpina | 172.16.77.77 | [Web UI](http://homeassistant.alpina:8123) |
 | Komga | komga.alpina | 172.16.16.202 | [Landing Page](http://komga.alpina) / [Komga UI](http://komga.alpina:25600) |
 | Monitoring | sentinella.alpina | 172.16.19.94 | [Grafana](https://grafana.sentinella.alpina) |
 | Proxmox | aria.alpina | 172.16.18.230 | Proxmox Web UI |
@@ -28,7 +29,7 @@ All infrastructure is monitored via the Sentinella observability stack:
 | Server | URL | Features |
 |--------|-----|----------|
 | Komga | http://komga.alpina | System stats, 30-day CPU/memory charts, link to Komga UI |
-| NTP | http://ntp.alpina:8080 | System stats, chrony sync status, NTP sources table |
+| NTP | http://ntp.alpina | System stats, chrony sync status, NTP sources table |
 
 ## SSH Access
 
@@ -51,3 +52,4 @@ ssh alfa@gotra                                 # Gotra app server
 | [monitoring-buildout-history.md](monitoring-buildout-history.md) | Monitoring build-out history and change log |
 | [monitoring-roadmap.md](monitoring-roadmap.md) | Monitoring roadmap and future plans |
 | [komga-remediation-plan.md](komga-remediation-plan.md) | Komga server hardening tasks |
+| [ipv6-prep.md](ipv6-prep.md) | IPv6 preparation and rollout plan |

@@ -9,6 +9,7 @@
 | NTP Server | ntp.alpina | 172.16.16.108 | Time synchronization |
 | Komga | komga.alpina | 172.16.16.202 | Media server (comics) |
 | Sentinella | sentinella.alpina | 172.16.19.94 | Monitoring (Grafana/Prometheus/Loki) |
+| Home Assistant | homeassistant.alpina | 172.16.77.77 | Smart home automation |
 
 ## Network Topology
 
@@ -112,7 +113,7 @@ ssh alfa@sentinella.alpina
 **Service:** Chrony 4.6.1 (Stratum 2)
 
 ### Web Access
-- **Landing Page:** http://ntp.alpina:8080 - Server stats + NTP sync status
+- **Landing Page:** http://ntp.alpina - Server stats + NTP sync status
 
 ### Time Sources (8 configured)
 - NIST: time-d-wwv.nist.gov (Stratum 1)

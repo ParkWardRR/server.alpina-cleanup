@@ -310,8 +310,8 @@ func main() {
 		})
 	})
 
-	fmt.Println("NTP Landing Page running on :8080")
-	http.ListenAndServe(":8080", nil)
+	fmt.Println("NTP Landing Page running on :80")
+	http.ListenAndServe(":80", nil)
 }
 
 const htmlTemplate = `<!DOCTYPE html>
