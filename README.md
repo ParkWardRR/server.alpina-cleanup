@@ -22,6 +22,7 @@ All infrastructure is monitored via the Sentinella observability stack:
 
 - **Grafana Dashboards:** https://grafana.sentinella.alpina
   - [Alpina Homelab Command Center](https://grafana.sentinella.alpina/d/homelab-master) — Master dashboard with all key metrics
+  - NTP section: 12 panels — offset/error in μs, frequency drift, PLL, NTS config summary
 - **Prometheus Metrics:** 7 hosts with node_exporter + Proxmox PVE exporter (9 VMs)
 - **NAS Metrics:** SNMP exporter for `portocali.alpina` (Synology/Xpenology OIDs)
 - **Loki Logs:** Centralized syslog from Proxmox, Pi-hole, OPNsense, NTP, Gotra
@@ -47,7 +48,7 @@ OPNsense runs Suricata 6.0.15 in IDS mode on both LAN (`igb0`) and WAN (`igb3`) 
 | Server | URL | Features |
 |--------|-----|----------|
 | Komga | http://komga.alpina | System stats, 30-day CPU/memory charts, link to Komga UI |
-| NTP | http://ntp.alpina | System stats, chrony sync status, NTP sources table |
+| NTP | http://ntp.alpina | Performance dashboard: 33-source status, NTS auth, offset/drift/error/PLL charts (1h-30d), reach visualization, system stats |
 
 ## SSH Access
 
