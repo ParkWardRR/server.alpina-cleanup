@@ -9,6 +9,7 @@ Single source for network/host facts, access, IPv6 status, and app notes.
 - Komga: http://komga.alpina (landing) / :25600 (UI)
 - NTP: http://ntp.alpina (landing)
 - Home Assistant: http://homeassistant.alpina:8123
+- Remote Access: Tailscale subnet router via OPNsense (see docs/tailscale.md)
 
 ## Monitoring Stack (Sentinella)
 - Grafana: https://grafana.sentinella.alpina — user `admin`, pass `sG8pF8JcGVl4BypmiPy/j06HgMcPda41`
