@@ -28,6 +28,20 @@ All infrastructure is monitored via the Sentinella observability stack:
 - **NAS Logs:** syslog-ng from `portocali.alpina` to Alloy
 - **Data Retention:** 24 months for both metrics and logs
 
+## Suricata IDS
+
+OPNsense runs Suricata 6.0.15 in IDS mode on both LAN (`igb0`) and WAN (`igb3`) interfaces.
+
+- **Mode:** IDS (detect/alert, not blocking)
+- **Interfaces:** LAN + WAN
+- **Rules (~200K active):**
+  - abuse.ch feeds: ThreatFox (147K), URLhaus (21K), SSL Blacklist (9K), Feodo Tracker
+  - Emerging Threats: malware, phishing, exploit-kit, scan, JA3
+  - Threat intel: botcc, ciarmy, compromised
+- **EVE syslog:** Enabled — alerts forwarded to Sentinella via syslog-ng (`1514/udp`)
+- **Community-ID:** Enabled for cross-tool correlation
+- **Grafana panels:** Suricata Alerts (1h/24h), Alert Rate, IDS Logs in Command Center dashboard
+
 ## Server Landing Pages
 
 | Server | URL | Features |

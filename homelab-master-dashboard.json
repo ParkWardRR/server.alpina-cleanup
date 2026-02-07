@@ -5,6 +5,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
+  "id": 8,
   "links": [],
   "panels": [
     {
@@ -141,7 +142,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "count(pve_up{id=~\"qemu/.*\"} == 1)",
+          "expr": "count(pve_up{id=~\"qemu/(10[0-7]|109|110)\"} == 1)",
           "refId": "A"
         }
       ],
@@ -222,6 +223,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
+      "description": "Average memory usage across Proxmox VMs as % of max allocation (balloon-aware)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -279,11 +281,11 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "avg((1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100)",
+          "expr": "avg(pve_memory_usage_bytes{id=~\"qemu/(10[0-7]|109|110)\"} / pve_memory_size_bytes{id=~\"qemu/(10[0-7]|109|110)\"} * 100)",
           "refId": "A"
         }
       ],
-      "title": "Avg Memory",
+      "title": "Avg VM Memory",
       "type": "stat"
     },
     {
@@ -291,6 +293,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
+      "description": "Number of hosts with time synchronization active",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -348,7 +351,6 @@
         }
       ],
       "title": "NTP Sync",
-      "description": "Number of hosts with time synchronization active",
       "type": "stat"
     },
     {
@@ -414,12 +416,109 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 1,
+                  "text": "DOWN"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "UP"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 117,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "name",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "up{job=\"node\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Host Status",
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "(.+):9100",
+            "renamePattern": "$1"
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 9
       },
       "id": 101,
       "panels": [],
@@ -456,7 +555,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 6
+        "y": 10
       },
       "id": 7,
       "options": {
@@ -494,6 +593,13 @@
         {
           "id": "renameByRegex",
           "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
             "regex": "(.+):9100",
             "renamePattern": "$1"
           }
@@ -506,6 +612,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
+      "description": "VMs: used / max allocation (balloon-aware). Non-VMs: used / total.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -531,7 +638,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 6
+        "y": 10
       },
       "id": 8,
       "options": {
@@ -559,13 +666,29 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100",
-          "legendFormat": "{{instance}}",
+          "expr": "(pve_memory_usage_bytes{id=~\"qemu/(10[0-7]|109|110)\"} / pve_memory_size_bytes{id=~\"qemu/(10[0-7]|109|110)\"}) * 100 * on(id) group_left(name) pve_guest_info",
+          "legendFormat": "{{name}}",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "(1 - node_memory_MemAvailable_bytes{instance=~\"pihole:9100|172.16.16.16:9100\"} / node_memory_MemTotal_bytes{instance=~\"pihole:9100|172.16.16.16:9100\"}) * 100",
+          "legendFormat": "{{instance}}",
+          "refId": "B"
         }
       ],
-      "title": "Memory by Host",
+      "title": "Memory by Host (% of Max)",
       "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
         {
           "id": "renameByRegex",
           "options": {
@@ -606,7 +729,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 6
+        "y": 10
       },
       "id": 9,
       "options": {
@@ -641,6 +764,13 @@
       ],
       "title": "Disk by Host",
       "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
         {
           "id": "renameByRegex",
           "options": {
@@ -712,7 +842,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 16
       },
       "id": 10,
       "options": {
@@ -747,6 +877,13 @@
         {
           "id": "renameByRegex",
           "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
             "regex": "(.+):9100",
             "renamePattern": "$1"
           }
@@ -759,6 +896,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
+      "description": "VMs: used / max allocation (balloon-aware). Non-VMs: used / total.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -815,7 +953,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 16
       },
       "id": 11,
       "options": {
@@ -840,13 +978,29 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100",
-          "legendFormat": "{{instance}}",
+          "expr": "(pve_memory_usage_bytes{id=~\"qemu/(10[0-7]|109|110)\"} / pve_memory_size_bytes{id=~\"qemu/(10[0-7]|109|110)\"}) * 100 * on(id) group_left(name) pve_guest_info",
+          "legendFormat": "{{name}}",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "(1 - node_memory_MemAvailable_bytes{instance=~\"pihole:9100|172.16.16.16:9100\"} / node_memory_MemTotal_bytes{instance=~\"pihole:9100|172.16.16.16:9100\"}) * 100",
+          "legendFormat": "{{instance}}",
+          "refId": "B"
         }
       ],
-      "title": "Memory Over Time",
+      "title": "Memory Over Time (% of Max)",
       "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
         {
           "id": "renameByRegex",
           "options": {
@@ -863,11 +1017,225 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 28
       },
       "id": 102,
       "panels": [],
-      "title": "Proxmox Virtualization",
+      "title": "VM Hosts (Aria)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 29
+      },
+      "id": 113,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "100 - (avg(rate(node_cpu_seconds_total{instance=\"aria.alpina:9100\",mode=\"idle\"}[5m])) * 100)",
+          "refId": "A"
+        }
+      ],
+      "title": "Aria CPU",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 29
+      },
+      "id": 114,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "(1 - node_memory_MemAvailable_bytes{instance=\"aria.alpina:9100\"} / node_memory_MemTotal_bytes{instance=\"aria.alpina:9100\"}) * 100",
+          "refId": "A"
+        }
+      ],
+      "title": "Aria Memory",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 29
+      },
+      "id": 115,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "time() - node_boot_time_seconds{instance=\"aria.alpina:9100\"}",
+          "refId": "A"
+        }
+      ],
+      "title": "Aria Uptime",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
+      "id": 116,
+      "panels": [],
+      "title": "VMs",
       "type": "row"
     },
     {
@@ -1031,7 +1399,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 35
       },
       "id": 12,
       "options": {
@@ -1059,7 +1427,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "pve_up{id=~\"qemu/.*\"}",
+          "expr": "pve_up{id=~\"qemu/(10[0-7]|109|110)\"}",
           "format": "table",
           "instant": true,
           "refId": "status"
@@ -1069,7 +1437,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "pve_cpu_usage_ratio{id=~\"qemu/.*\"} * 100",
+          "expr": "pve_cpu_usage_ratio{id=~\"qemu/(10[0-7]|109|110)\"} * 100",
           "format": "table",
           "instant": true,
           "refId": "cpu"
@@ -1079,7 +1447,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "pve_memory_usage_bytes{id=~\"qemu/.*\"} / pve_memory_size_bytes{id=~\"qemu/.*\"} * 100",
+          "expr": "pve_memory_usage_bytes{id=~\"qemu/(10[0-7]|109|110)\"} / pve_memory_size_bytes{id=~\"qemu/(10[0-7]|109|110)\"} * 100",
           "format": "table",
           "instant": true,
           "refId": "mem"
@@ -1089,7 +1457,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "pve_disk_size_bytes{id=~\"qemu/.*\"}",
+          "expr": "pve_disk_size_bytes{id=~\"qemu/(10[0-7]|109|110)\"}",
           "format": "table",
           "instant": true,
           "refId": "disk"
@@ -1099,7 +1467,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "pve_uptime_seconds{id=~\"qemu/.*\"}",
+          "expr": "pve_uptime_seconds{id=~\"qemu/(10[0-7]|109|110)\"}",
           "format": "table",
           "instant": true,
           "refId": "uptime"
@@ -1109,7 +1477,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "pve_guest_info{id=~\"qemu/.*\"}",
+          "expr": "pve_guest_info{id=~\"qemu/(10[0-7]|109|110)\"}",
           "format": "table",
           "instant": true,
           "refId": "info"
@@ -1206,7 +1574,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 43
       },
       "id": 103,
       "panels": [],
@@ -1250,7 +1618,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 28
+        "y": 44
       },
       "id": 13,
       "options": {
@@ -1330,7 +1698,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 28
+        "y": 44
       },
       "id": 14,
       "options": {
@@ -1400,7 +1768,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 28
+        "y": 44
       },
       "id": 15,
       "options": {
@@ -1469,7 +1837,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 28
+        "y": 44
       },
       "id": 16,
       "options": {
@@ -1561,9 +1929,9 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 33
+        "y": 49
       },
       "id": 17,
       "options": {
@@ -1598,6 +1966,13 @@
         {
           "id": "renameByRegex",
           "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
             "regex": "(.+):9100",
             "renamePattern": "$1"
           }
@@ -1613,8 +1988,8 @@
       "gridPos": {
         "h": 6,
         "w": 12,
-        "x": 12,
-        "y": 33
+        "x": 0,
+        "y": 55
       },
       "id": 18,
       "options": {
@@ -1642,16 +2017,113 @@
       "type": "logs"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "ms",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 55
+      },
+      "id": 112,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "node_timex_estimated_error_seconds * 1000",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "node_timex_maxerror_seconds * 1000",
+          "refId": "B"
+        }
+      ],
+      "title": "NTP Error History",
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 61
       },
       "id": 104,
       "panels": [],
-      "title": "Pi-hole DNS & Ad Blocking",
+      "title": "Appliances: Pi-hole DNS & Ad Blocking",
       "type": "row"
     },
     {
@@ -1683,7 +2155,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 39
+        "y": 62
       },
       "id": 19,
       "options": {
@@ -1752,7 +2224,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 39
+        "y": 62
       },
       "id": 20,
       "options": {
@@ -1821,7 +2293,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 39
+        "y": 62
       },
       "id": 21,
       "options": {
@@ -1882,7 +2354,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 39
+        "y": 62
       },
       "id": 22,
       "options": {
@@ -1976,7 +2448,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 44
+        "y": 67
       },
       "id": 23,
       "options": {
@@ -2023,22 +2495,103 @@
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Blocked"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 44
+        "y": 67
       },
       "id": 24,
       "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": true,
-        "prettifyLogMessage": false,
-        "showCommonLabels": false,
-        "showLabels": true,
-        "showTime": true,
-        "sortOrder": "Descending",
-        "wrapLogMessage": false
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "pluginVersion": "11.4.0",
       "targets": [
@@ -2047,12 +2600,22 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "{job=\"syslog\"} |~ \"(?i)(pihole|dnsmasq|gravity|FTL)\"",
+          "expr": "sum(count_over_time({job=\"syslog\", host=\"pihole\"} |~ \"(?i)(blocked|gravity)\" [$__auto]))",
+          "legendFormat": "Blocked",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "expr": "sum(count_over_time({job=\"syslog\", host=\"pihole\"} |~ \"query\\\\[\" [$__auto]))",
+          "legendFormat": "Total",
+          "refId": "B"
         }
       ],
-      "title": "Pi-hole Logs",
-      "type": "logs"
+      "title": "Blocked vs Total Queries",
+      "type": "timeseries"
     },
     {
       "collapsed": false,
@@ -2060,11 +2623,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 73
       },
       "id": 105,
       "panels": [],
-      "title": "OPNsense Firewall",
+      "title": "Appliances: OPNsense Firewall",
       "type": "row"
     },
     {
@@ -2096,7 +2659,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 50
+        "y": 74
       },
       "id": 25,
       "options": {
@@ -2158,7 +2721,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 50
+        "y": 74
       },
       "id": 26,
       "options": {
@@ -2227,7 +2790,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 50
+        "y": 74
       },
       "id": 27,
       "options": {
@@ -2322,7 +2885,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 55
+        "y": 79
       },
       "id": 28,
       "options": {
@@ -2360,7 +2923,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 55
+        "y": 79
       },
       "id": 29,
       "options": {
@@ -2479,7 +3042,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 61
+        "y": 85
       },
       "id": 40,
       "options": {
@@ -2525,7 +3088,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "GB",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -2554,6 +3117,7 @@
               "mode": "off"
             }
           },
+          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -2564,7 +3128,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -2572,7 +3136,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 61
+        "y": 85
       },
       "id": 41,
       "options": {
@@ -2596,12 +3160,12 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "expr": "sum by (fw_interface) (count_over_time({source_type=\"firewall\"} [5m]))",
+          "expr": "(sum by (fw_interface) (sum_over_time({source_type=\"firewall\", fw_direction=\"in\"} | regexp \",(?P<proto>[^,]+),(?P<bytes>\\\\d+),(?P<src>(?:\\\\d{1,3}\\\\.){3}\\\\d{1,3}|[0-9A-Fa-f:]+),\" | unwrap bytes [5m]))) / 1e9",
           "legendFormat": "{{fw_interface}}",
           "refId": "A"
         }
       ],
-      "title": "Traffic by Interface",
+      "title": "Downloads by Interface",
       "type": "timeseries"
     },
     {
@@ -2611,9 +3175,9 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 8,
+        "w": 12,
         "x": 0,
-        "y": 67
+        "y": 91
       },
       "id": 42,
       "options": {
@@ -2628,6 +3192,100 @@
       "pluginVersion": "11.4.0",
       "title": "Gateway Info",
       "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "GB",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 91
+      },
+      "id": 59,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "expr": "(sum by (fw_interface) (sum_over_time({source_type=\"firewall\", fw_direction=\"out\"} | regexp \",(?P<proto>[^,]+),(?P<bytes>\\\\d+),(?P<src>(?:\\\\d{1,3}\\\\.){3}\\\\d{1,3}|[0-9A-Fa-f:]+),\" | unwrap bytes [5m]))) / 1e9",
+          "legendFormat": "{{fw_interface}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Uploads by Interface",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -2688,9 +3346,9 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 16,
-        "x": 8,
-        "y": 67
+        "w": 24,
+        "x": 0,
+        "y": 97
       },
       "id": 43,
       "options": {
@@ -2728,7 +3386,330 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 73
+        "y": 103
+      },
+      "id": 111,
+      "panels": [],
+      "title": "Appliances: Suricata IDS",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 104
+      },
+      "id": 60,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "expr": "sum(count_over_time({host=\"gateway.alpina\", job=\"syslog\"} |= \"suricata\" |~ \"\\\\[Classification:|\\\\[Priority:\" [1h]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Suricata Alerts (1h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 104
+      },
+      "id": 61,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "expr": "sum(count_over_time({host=\"gateway.alpina\", job=\"syslog\"} |= \"suricata\" |~ \"\\\\[Classification:|\\\\[Priority:\" [24h]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Suricata Alerts (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 104
+      },
+      "id": 62,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "expr": "count(count_over_time({host=\"gateway.alpina\", job=\"syslog\"} |= \"suricata\" |~ \"\\\\[Classification:|\\\\[Priority:\" [24h]) > 0)",
+          "refId": "A"
+        }
+      ],
+      "title": "Suricata Streams (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 109
+      },
+      "id": 63,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "expr": "sum(count_over_time({host=\"gateway.alpina\", job=\"syslog\"} |= \"suricata\" |~ \"\\\\[Classification:|\\\\[Priority:\" [5m]))",
+          "legendFormat": "alerts",
+          "refId": "A"
+        }
+      ],
+      "title": "Suricata Alert Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 115
+      },
+      "id": 64,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "expr": "{host=\"gateway.alpina\", job=\"syslog\"} |= \"suricata\" |~ \"\\\\[Classification:|\\\\[Priority:\"",
+          "refId": "A"
+        }
+      ],
+      "title": "Suricata IDS Logs",
+      "type": "logs"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 123
       },
       "id": 106,
       "panels": [],
@@ -2809,7 +3790,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 74
+        "y": 124
       },
       "id": 30,
       "options": {
@@ -2849,6 +3830,13 @@
       ],
       "title": "Network I/O",
       "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
         {
           "id": "renameByRegex",
           "options": {
@@ -2933,7 +3921,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 74
+        "y": 124
       },
       "id": 31,
       "options": {
@@ -2976,6 +3964,13 @@
         {
           "id": "renameByRegex",
           "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
             "regex": "(.+):9100 (read|write)",
             "renamePattern": "$1 $2"
           }
@@ -2989,7 +3984,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 81
+        "y": 131
       },
       "id": 107,
       "panels": [],
@@ -3057,7 +4052,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 82
+        "y": 132
       },
       "id": 32,
       "options": {
@@ -3148,7 +4143,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 82
+        "y": 132
       },
       "id": 33,
       "options": {
@@ -3186,7 +4181,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 82
+        "y": 132
       },
       "id": 34,
       "options": {
@@ -3219,7 +4214,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 89
+        "y": 139
       },
       "id": 109,
       "panels": [],
@@ -3251,10 +4246,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
+        "h": 3,
+        "w": 8,
         "x": 0,
-        "y": 90
+        "y": 140
       },
       "id": 50,
       "options": {
@@ -3312,10 +4307,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 6,
-        "y": 90
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 140
       },
       "id": 51,
       "options": {
@@ -3376,10 +4371,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 12,
-        "y": 90
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 140
       },
       "id": 52,
       "options": {
@@ -3411,80 +4406,6 @@
       ],
       "title": "Unavailable Devices",
       "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "continuous-GrYlRd"
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 20
-              },
-              {
-                "color": "green",
-                "value": 50
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 18,
-        "y": 90
-      },
-      "id": 53,
-      "options": {
-        "displayMode": "lcd",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "homeassistant_sensor_battery_percent{entity!~\".*iphone.*|.*ipad.*\"}",
-          "legendFormat": "{{friendly_name}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Device Battery Levels",
-      "type": "bargauge"
     },
     {
       "datasource": {
@@ -3569,10 +4490,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 5,
         "w": 12,
         "x": 0,
-        "y": 95
+        "y": 143
       },
       "id": 54,
       "options": {
@@ -3618,6 +4539,7 @@
               "__name__": true,
               "domain": true,
               "entity": true,
+              "env": true,
               "instance": true,
               "job": true
             },
@@ -3713,10 +4635,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 5,
         "w": 12,
         "x": 12,
-        "y": 95
+        "y": 143
       },
       "id": 55,
       "options": {
@@ -3762,6 +4684,7 @@
               "__name__": true,
               "domain": true,
               "entity": true,
+              "env": true,
               "instance": true,
               "job": true
             },
@@ -3780,7 +4703,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 134
+        "y": 148
       },
       "id": 108,
       "panels": [],
@@ -3954,7 +4877,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 135
+        "y": 149
       },
       "id": 35,
       "options": {
@@ -4031,6 +4954,13 @@
       "title": "Host Summary",
       "transformations": [
         {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
+        {
           "id": "seriesToColumns",
           "options": {
             "byField": "instance"
@@ -4089,17 +5019,199 @@
       "type": "table"
     },
     {
-      "collapsed": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 3600
+              },
+              {
+                "color": "green",
+                "value": 86400
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 1,
-        "w": 24,
+        "h": 5,
+        "w": 8,
         "x": 0,
-        "y": 102
+        "y": 23
+      },
+      "id": 118,
+      "options": {
+        "displayMode": "lcd",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "time() - node_boot_time_seconds{instance!~\"valbonina.*\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Uptime by Host",
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "(.+):9100",
+            "renamePattern": "$1"
+          }
+        }
+      ],
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 23
       },
       "id": 200,
-      "panels": [],
-      "title": "Portocali NAS (Xpenology)",
-      "type": "row"
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "text": {},
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "sum by (instance) (apt_upgrades_pending) or sum by (instance) (yum_upgrades_pending)",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Pending Updates",
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "(.+):9100",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "pihole:9100",
+            "renamePattern": "pihole"
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": true,
+                "field": "Value"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -4114,11 +5226,20 @@
           "mappings": [
             {
               "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "No"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
                 "1": {
-                  "text": "Normal"
-                },
-                "2": {
-                  "text": "FAILED"
+                  "color": "red",
+                  "index": 1,
+                  "text": "Yes"
                 }
               },
               "type": "value"
@@ -4128,973 +5249,42 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "green",
                 "value": null
               },
               {
-                "color": "green",
+                "color": "red",
                 "value": 1
               }
             ]
-          }
+          },
+          "unit": "none"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 0,
-        "y": 103
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 23
       },
       "id": 201,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_system_status{instance=\"172.16.21.21\"}",
-          "legendFormat": "System"
-        }
-      ],
-      "title": "System Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "unit": "celsius",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 50
-              },
-              {
-                "color": "red",
-                "value": 65
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 3,
-        "y": 103
-      },
-      "id": 202,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_temperature{instance=\"172.16.21.21\"}",
-          "legendFormat": "Temperature"
-        }
-      ],
-      "title": "System Temp",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "1": {
-                  "text": "Normal"
-                },
-                "2": {
-                  "text": "FAILED"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 6,
-        "y": 103
-      },
-      "id": 203,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_power_status{instance=\"172.16.21.21\"}",
-          "legendFormat": "Power"
-        }
-      ],
-      "title": "Power Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "1": {
-                  "text": "Normal"
-                },
-                "2": {
-                  "text": "FAILED"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 9,
-        "y": 103
-      },
-      "id": 204,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_system_fan_status{instance=\"172.16.21.21\"}",
-          "legendFormat": "Fan"
-        }
-      ],
-      "title": "Fan Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 12,
-        "y": 103
-      },
-      "id": 205,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "sum(synology_service_users{instance=\"172.16.21.21\",serviceName=\"CIFS\"})",
-          "legendFormat": "SMB"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "sum(synology_service_users{instance=\"172.16.21.21\",serviceName=\"NFS\"})",
-          "legendFormat": "NFS"
-        }
-      ],
-      "title": "Active Users",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 15,
-        "y": 103
-      },
-      "id": 206,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "count(synology_disk_status{instance=\"172.16.21.21\"})",
-          "legendFormat": "Disks"
-        }
-      ],
-      "title": "Total Disks",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 80
-              },
-              {
-                "color": "orange",
-                "value": 85
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
-        },
-        "textMode": "auto"
-      },
-      "type": "stat",
-      "id": 213,
-      "title": "Vol 2 Used %",
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 18,
-        "y": 103
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "(1 - (synology_raid_free_size{instance=\"172.16.21.21\",raidName=\"Volume 2\"} / synology_raid_total_size{instance=\"172.16.21.21\",raidName=\"Volume 2\"})) * 100",
-          "legendFormat": "Volume 2"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 80
-              },
-              {
-                "color": "orange",
-                "value": 85
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "textMode": "auto"
-      },
-      "type": "stat",
-      "id": 214,
-      "title": "Vol 4 Used %",
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 21,
-        "y": 103
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "(1 - (synology_raid_free_size{instance=\"172.16.21.21\",raidName=\"Volume 4\"} / synology_raid_total_size{instance=\"172.16.21.21\",raidName=\"Volume 4\"})) * 100",
-          "legendFormat": "Volume 4"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Status"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "1": {
-                        "color": "green",
-                        "text": "Normal"
-                      },
-                      "2": {
-                        "color": "yellow",
-                        "text": "Repairing"
-                      },
-                      "11": {
-                        "color": "red",
-                        "text": "Degraded"
-                      },
-                      "12": {
-                        "color": "dark-red",
-                        "text": "Crashed"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "mode": "basic",
-                  "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Free"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "bytes"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Total"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "bytes"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Used %"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "yellow",
-                      "value": 70
-                    },
-                    {
-                      "color": "orange",
-                      "value": 80
-                    },
-                    {
-                      "color": "red",
-                      "value": 90
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "mode": "basic",
-                  "type": "gauge"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 107
-      },
-      "id": 207,
-      "options": {
-        "showHeader": true,
-        "sortBy": [
-          {
-            "displayName": "Volume",
-            "desc": false
-          }
-        ]
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_raid_status{instance=\"172.16.21.21\",raidName=~\"Volume.*\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": ""
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_raid_free_size{instance=\"172.16.21.21\",raidName=~\"Volume.*\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": ""
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_raid_total_size{instance=\"172.16.21.21\",raidName=~\"Volume.*\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": ""
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "100 - (synology_raid_free_size{instance=\"172.16.21.21\",raidName=~\"Volume.*\"} / synology_raid_total_size{instance=\"172.16.21.21\",raidName=~\"Volume.*\"} * 100)",
-          "format": "table",
-          "instant": true,
-          "legendFormat": ""
-        }
-      ],
-      "title": "RAID / Volume Status",
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "instance": true,
-              "job": true,
-              "hostname": true,
-              "os": true,
-              "role": true,
-              "raidIndex": true,
-              "__name__": true
-            },
-            "renameByName": {
-              "raidName": "Volume",
-              "Value #A": "Status",
-              "Value #B": "Free",
-              "Value #C": "Total",
-              "Value #D": "Used %"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Health"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "1": {
-                        "color": "green",
-                        "text": "Normal"
-                      },
-                      "2": {
-                        "color": "yellow",
-                        "text": "Warning"
-                      },
-                      "3": {
-                        "color": "orange",
-                        "text": "Critical"
-                      },
-                      "4": {
-                        "color": "red",
-                        "text": "Failing"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "mode": "basic",
-                  "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Temp"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "celsius"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "yellow",
-                      "value": 45
-                    },
-                    {
-                      "color": "red",
-                      "value": 55
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "mode": "basic",
-                  "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Bad Sectors"
-            },
-            "properties": [
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "yellow",
-                      "value": 1
-                    },
-                    {
-                      "color": "red",
-                      "value": 100
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "mode": "basic",
-                  "type": "color-background"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 107
-      },
-      "id": 208,
-      "options": {
-        "showHeader": true,
-        "sortBy": [
-          {
-            "displayName": "Disk",
-            "desc": false
-          }
-        ]
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_disk_health_status{instance=\"172.16.21.21\"}",
-          "format": "table",
-          "instant": true
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_disk_temperature{instance=\"172.16.21.21\"}",
-          "format": "table",
-          "instant": true
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_disk_bad_sector{instance=\"172.16.21.21\"}",
-          "format": "table",
-          "instant": true
-        }
-      ],
-      "title": "Disk Health",
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "instance": true,
-              "job": true,
-              "hostname": true,
-              "os": true,
-              "role": true,
-              "diskIndex": true,
-              "__name__": true
-            },
-            "renameByName": {
-              "diskID": "Disk",
-              "Value #A": "Health",
-              "Value #B": "Temp",
-              "Value #C": "Bad Sectors"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 1,
-            "spanNulls": false
-          },
-          "unit": "Bps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 115
-      },
-      "id": 209,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "max"
           ],
-          "displayMode": "table",
-          "placement": "bottom"
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -5102,187 +5292,36 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "rate(synology_storage_io_bytes_read{instance=\"172.16.21.21\"}[5m])",
-          "legendFormat": "{{storageIODevice}} read"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "rate(synology_storage_io_bytes_written{instance=\"172.16.21.21\"}[5m])",
-          "legendFormat": "{{storageIODevice}} write"
-        }
-      ],
-      "title": "Disk I/O",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 1,
-            "spanNulls": false
-          },
-          "unit": "Bps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 115
-      },
-      "id": 210,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "rate(synology_space_io_bytes_read{instance=\"172.16.21.21\"}[5m])",
-          "legendFormat": "{{spaceIODevice}} read"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "rate(synology_space_io_bytes_written{instance=\"172.16.21.21\"}[5m])",
-          "legendFormat": "{{spaceIODevice}} write"
-        }
-      ],
-      "title": "Volume I/O",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "fillOpacity": 0,
-            "lineWidth": 1,
-            "spanNulls": false
-          },
-          "unit": "celsius",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 45
-              },
-              {
-                "color": "red",
-                "value": 55
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 123
-      },
-      "id": 211,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "right"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_disk_temperature{instance=\"172.16.21.21\"}",
-          "legendFormat": "{{diskID}}"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "expr": "synology_temperature{instance=\"172.16.21.21\"}",
-          "legendFormat": "System"
-        }
-      ],
-      "title": "Temperatures",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 123
-      },
-      "id": 212,
-      "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": true,
-        "prettifyLogMessage": false,
-        "showLabels": false,
-        "showTime": true,
-        "sortOrder": "Descending",
-        "wrapLogMessage": false
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          },
-          "expr": "{host=\"Portocali\"}",
+          "expr": "node_reboot_required",
+          "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "NAS Logs",
-      "type": "logs"
+      "title": "Reboot Required",
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "172\\.16\\.16\\.16(.*)",
+            "renamePattern": "Gateway"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "(.+):9100",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "pihole:9100",
+            "renamePattern": "pihole"
+          }
+        }
+      ],
+      "type": "stat"
     }
   ],
   "refresh": "30s",
@@ -5324,7 +5363,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Alpina Homelab - Command Center",
+  "title": "Dashboards Alpina Homelab \u2014 Command Center",
   "uid": "homelab-master",
-  "version": 1
+  "version": 27
 }
