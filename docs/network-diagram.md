@@ -17,7 +17,8 @@ graph TD
     172.16.16.16
     2603:8001:7400:fa9a:a236:9fff:fe66:27ac
     ─────────────────────────────
-    RA · RDNSS · IPv6 Firewall · Forwarding"]
+    RA · RDNSS · IPv6 Firewall · Forwarding
+    Suricata IDS (LAN+WAN)"]
 
     GW -- "igb0 · LAN · Router Advertisements
     Prefix 2603:8001:7400:fa9a::/64
@@ -236,6 +237,9 @@ flowchart TD
         SYS["syslog / rsyslog / syslog-ng
         Proxmox · Pi-hole · OPNsense
         NTP · Gotra · Portocali"]
+        IDS["Suricata IDS EVE
+        gateway.alpina (LAN+WAN)
+        ~200K rules · Community-ID"]
     end
 
     NE1 -- "scrape every 15s" --> PROM
@@ -244,6 +248,7 @@ flowchart TD
     scrape every 120s" --> PROM
 
     SYS -- "UDP :1514" --> ALLOY
+    IDS -- "syslog (EVE alerts)" --> ALLOY
 
     PROM["**Prometheus**
     sentinella.alpina:9090
@@ -267,6 +272,7 @@ flowchart TD
     style PVE fill:#1a3547,stroke:#38bdf8,color:#fff
     style SNMP fill:#1a3547,stroke:#38bdf8,color:#fff
     style SYS fill:#1a3547,stroke:#38bdf8,color:#fff
+    style IDS fill:#4a1a1a,stroke:#ef4444,color:#fff,stroke-width:2px
     style PROM fill:#3b1f1f,stroke:#f97316,color:#fff,stroke-width:2px
     style ALLOY fill:#3b1f1f,stroke:#f97316,color:#fff
     style LOKI fill:#3b1f1f,stroke:#f97316,color:#fff
@@ -330,3 +336,6 @@ flowchart LR
 | ~~2~~ | ~~`homeassistant.alpina` has no global IPv6~~ | ~~Resolved~~ | ~~HAOS already had SLAAC via NetworkManager~~ |
 | ~~3~~ | ~~`portocali.alpina` NAS not on IPv6~~ | ~~Resolved~~ | ~~IPv6 enabled in DSM~~ |
 | 4 | Single /64 prefix limits future VLANs | No subnet segmentation | Request /56 from Spectrum |
+| 5 | Suricata IDS in detect-only mode | Alerts but doesn't block | Run IDS 2-3 weeks, tune FPs, then consider IPS |
+| 6 | Suricata 6.0.15 (OPNsense 23.7) | Missing Suricata 7 features | Upgrade OPNsense when ready |
+| 7 | `emerging-trojan.rules` unavailable | ET Open limitation | Requires ET Pro subscription (optional) |
