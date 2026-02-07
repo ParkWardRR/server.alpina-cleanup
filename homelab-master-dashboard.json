@@ -1578,7 +1578,7 @@
       },
       "id": 103,
       "panels": [],
-      "title": "NTP & Time Synchronization",
+      "title": "NTP \u2014 Maximum Performance (33 Sources \u00b7 7 NTS)",
       "type": "row"
     },
     {
@@ -1591,7 +1591,7 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 3,
+          "decimals": 1,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -1602,21 +1602,21 @@
               },
               {
                 "color": "yellow",
-                "value": 5
+                "value": 50
               },
               {
                 "color": "red",
-                "value": 50
+                "value": 500
               }
             ]
           },
-          "unit": "ms"
+          "unit": "\u00b5s"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
+        "w": 4,
         "x": 0,
         "y": 44
       },
@@ -1644,11 +1644,11 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "node_timex_offset_seconds{instance=\"ntp.alpina:9100\"} * 1000",
+          "expr": "abs(node_timex_offset_seconds{instance=\"ntp.alpina:9100\"}) * 1e6",
           "refId": "A"
         }
       ],
-      "title": "Clock Offset",
+      "title": "Clock Offset (\u03bcs)",
       "type": "stat"
     },
     {
@@ -1696,8 +1696,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 6,
+        "w": 4,
+        "x": 4,
         "y": 44
       },
       "id": 14,
@@ -1752,11 +1752,11 @@
               },
               {
                 "color": "yellow",
-                "value": 10
+                "value": 5
               },
               {
                 "color": "red",
-                "value": 50
+                "value": 20
               }
             ]
           },
@@ -1766,8 +1766,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 12,
+        "w": 4,
+        "x": 8,
         "y": 44
       },
       "id": 15,
@@ -1821,22 +1821,23 @@
               },
               {
                 "color": "yellow",
-                "value": 100
+                "value": 1000
               },
               {
                 "color": "red",
-                "value": 500
+                "value": 10000
               }
             ]
           },
-          "unit": "ms"
+          "unit": "\u00b5s",
+          "decimals": 0
         },
         "overrides": []
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 18,
+        "w": 4,
+        "x": 12,
         "y": 44
       },
       "id": 16,
@@ -1863,12 +1864,107 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "node_timex_maxerror_seconds{instance=\"ntp.alpina:9100\"} * 1000",
+          "expr": "node_timex_maxerror_seconds{instance=\"ntp.alpina:9100\"} * 1e6",
           "refId": "A"
         }
       ],
-      "title": "Max Error",
+      "title": "Max Error (\u03bcs)",
       "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 5000
+              }
+            ]
+          },
+          "unit": "\u00b5s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 44
+      },
+      "id": 119,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "node_timex_estimated_error_seconds{instance=\"ntp.alpina:9100\"} * 1e6",
+          "refId": "A"
+        }
+      ],
+      "title": "Est. Error (\u03bcs)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 44
+      },
+      "id": 120,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "**Chrony 4.6.1** on AlmaLinux 10\n\n- **33** upstream sources\n- **7** NTS-authenticated\n- Polling: 2\u201364 sec\n- SCHED_FIFO prio 99\n- Stratum 2 \u00b7 ~7 \u03bcs",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.4.0",
+      "title": "NTP Config",
+      "type": "text"
     },
     {
       "datasource": {
@@ -1923,7 +2019,7 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "\u00b5s"
         },
         "overrides": []
       },
@@ -1931,7 +2027,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 50
       },
       "id": 17,
       "options": {
@@ -1956,12 +2052,12 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "node_timex_offset_seconds * 1000",
+          "expr": "node_timex_offset_seconds * 1e6",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Clock Offset History",
+      "title": "Clock Offset History (\u03bcs)",
       "transformations": [
         {
           "id": "renameByRegex",
@@ -1989,7 +2085,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 55
+        "y": 56
       },
       "id": 18,
       "options": {
@@ -2029,7 +2125,7 @@
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "ms",
+            "axisLabel": "\u03bcs",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -2065,7 +2161,7 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "\u00b5s"
         },
         "overrides": []
       },
@@ -2073,7 +2169,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 55
+        "y": 56
       },
       "id": 112,
       "options": {
@@ -2098,7 +2194,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "node_timex_estimated_error_seconds * 1000",
+          "expr": "node_timex_estimated_error_seconds * 1e6",
           "refId": "A"
         },
         {
@@ -2106,11 +2202,190 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "node_timex_maxerror_seconds * 1000",
+          "expr": "node_timex_maxerror_seconds * 1e6",
           "refId": "B"
         }
       ],
-      "title": "NTP Error History",
+      "title": "NTP Error History (\u03bcs)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": true,
+            "axisColorMode": "text",
+            "axisLabel": "ppm",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ppm"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 62
+      },
+      "id": 121,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "(node_timex_frequency_adjustment_ratio{instance=\"ntp.alpina:9100\"} - 1) * 1e6",
+          "legendFormat": "ntp.alpina",
+          "refId": "A"
+        }
+      ],
+      "title": "Frequency Drift History",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 62
+      },
+      "id": 122,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "node_timex_loop_time_constant{instance=\"ntp.alpina:9100\"}",
+          "legendFormat": "PLL Time Constant",
+          "refId": "A"
+        }
+      ],
+      "title": "PLL Time Constant",
       "type": "timeseries"
     },
     {
@@ -2119,7 +2394,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 61
+        "y": 67
       },
       "id": 104,
       "panels": [],
@@ -2155,7 +2430,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 62
+        "y": 68
       },
       "id": 19,
       "options": {
@@ -2224,7 +2499,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 62
+        "y": 68
       },
       "id": 20,
       "options": {
@@ -2293,7 +2568,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 62
+        "y": 68
       },
       "id": 21,
       "options": {
@@ -2354,7 +2629,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 62
+        "y": 68
       },
       "id": 22,
       "options": {
@@ -2448,7 +2723,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 67
+        "y": 73
       },
       "id": 23,
       "options": {
@@ -2576,7 +2851,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 67
+        "y": 73
       },
       "id": 24,
       "options": {
@@ -2623,7 +2898,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 73
+        "y": 79
       },
       "id": 105,
       "panels": [],
@@ -2659,7 +2934,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 74
+        "y": 80
       },
       "id": 25,
       "options": {
@@ -2721,7 +2996,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 74
+        "y": 80
       },
       "id": 26,
       "options": {
@@ -2790,7 +3065,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 74
+        "y": 80
       },
       "id": 27,
       "options": {
@@ -2885,7 +3160,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 79
+        "y": 85
       },
       "id": 28,
       "options": {
@@ -2923,7 +3198,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 79
+        "y": 85
       },
       "id": 29,
       "options": {
@@ -3042,7 +3317,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 85
+        "y": 91
       },
       "id": 40,
       "options": {
@@ -3136,7 +3411,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 85
+        "y": 91
       },
       "id": 41,
       "options": {
@@ -3177,7 +3452,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 91
+        "y": 97
       },
       "id": 42,
       "options": {
@@ -3255,7 +3530,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 91
+        "y": 97
       },
       "id": 59,
       "options": {
@@ -3348,7 +3623,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 97
+        "y": 103
       },
       "id": 43,
       "options": {
@@ -3386,7 +3661,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 103
+        "y": 109
       },
       "id": 111,
       "panels": [],
@@ -3425,7 +3700,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 104
+        "y": 110
       },
       "id": 60,
       "options": {
@@ -3488,7 +3763,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 104
+        "y": 110
       },
       "id": 61,
       "options": {
@@ -3551,7 +3826,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 104
+        "y": 110
       },
       "id": 62,
       "options": {
@@ -3634,7 +3909,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 109
+        "y": 115
       },
       "id": 63,
       "options": {
@@ -3676,7 +3951,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 115
+        "y": 121
       },
       "id": 64,
       "options": {
@@ -3709,7 +3984,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 123
+        "y": 129
       },
       "id": 106,
       "panels": [],
@@ -3790,7 +4065,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 124
+        "y": 130
       },
       "id": 30,
       "options": {
@@ -3921,7 +4196,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 124
+        "y": 130
       },
       "id": 31,
       "options": {
@@ -3984,7 +4259,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 131
+        "y": 137
       },
       "id": 107,
       "panels": [],
@@ -4052,7 +4327,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 132
+        "y": 138
       },
       "id": 32,
       "options": {
@@ -4143,7 +4418,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 132
+        "y": 138
       },
       "id": 33,
       "options": {
@@ -4181,7 +4456,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 132
+        "y": 138
       },
       "id": 34,
       "options": {
@@ -4214,7 +4489,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 139
+        "y": 145
       },
       "id": 109,
       "panels": [],
@@ -4249,7 +4524,7 @@
         "h": 3,
         "w": 8,
         "x": 0,
-        "y": 140
+        "y": 146
       },
       "id": 50,
       "options": {
@@ -4310,7 +4585,7 @@
         "h": 3,
         "w": 8,
         "x": 8,
-        "y": 140
+        "y": 146
       },
       "id": 51,
       "options": {
@@ -4374,7 +4649,7 @@
         "h": 3,
         "w": 8,
         "x": 16,
-        "y": 140
+        "y": 146
       },
       "id": 52,
       "options": {
@@ -4493,7 +4768,7 @@
         "h": 5,
         "w": 12,
         "x": 0,
-        "y": 143
+        "y": 149
       },
       "id": 54,
       "options": {
@@ -4638,7 +4913,7 @@
         "h": 5,
         "w": 12,
         "x": 12,
-        "y": 143
+        "y": 149
       },
       "id": 55,
       "options": {
@@ -4703,7 +4978,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 148
+        "y": 154
       },
       "id": 108,
       "panels": [],
@@ -4877,7 +5152,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 149
+        "y": 155
       },
       "id": 35,
       "options": {
@@ -5054,7 +5329,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 23
+        "y": 29
       },
       "id": 118,
       "options": {
@@ -5143,7 +5418,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 23
+        "y": 29
       },
       "id": 200,
       "options": {
@@ -5266,7 +5541,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 23
+        "y": 29
       },
       "id": 201,
       "options": {
@@ -5365,5 +5640,5 @@
   "timezone": "browser",
   "title": "Dashboards Alpina Homelab \u2014 Command Center",
   "uid": "homelab-master",
-  "version": 27
+  "version": 28
 }
