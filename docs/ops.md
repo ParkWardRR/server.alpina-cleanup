@@ -15,6 +15,8 @@ Single source for network/host facts, access, IPv6 status, and app notes.
 - Prometheus / Loki / Alloy (basic auth): https://prometheus.sentinella.alpina, https://loki.sentinella.alpina, https://alloy.sentinella.alpina — user `admin`, pass `vURLumGa0GMu4/nR2+vejcenAQBqt1un`
 - Syslog ingest: `sentinella.alpina:1514/udp`
 - Manage: `sudo systemctl restart observability-stack` (on sentinella); configs under `/opt/observability/`
+- Node Exporter: All 8 Linux/FreeBSD hosts scraped on `:9100` (gateway via `os-node_exporter` FreeBSD plugin).
+- Pending Updates: Debian hosts use `apt_info.py` textfile collector (15min timer); AlmaLinux hosts use custom `dnf-updates-prom.sh` (15min cron). Dashboard shows per-host pending count + reboot required.
 - Portocali NAS:
   - Logs: `portocali.alpina` forwards syslog-ng to Alloy (`1514/udp`)
   - Metrics: Prometheus SNMP Exporter scrapes Synology/Xpenology OIDs (disk/RAID/temp/services/I/O)
@@ -80,6 +82,11 @@ ssh root@homeassistant.local                   # Home Assistant (HAOS)
 ### Backups
 - OPNsense: `/root/ipv6-backup-20260205_213520/` (config, radvd, dhcp6c, rules, ndp snapshot).
 - Pi-hole: `/home/pi/ipv6-backup-20260205_213526/` (pihole.toml, custom.list, sysctl, route snapshots).
+
+### Monitoring: Update Metrics
+- **Debian hosts** (pihole, komga, aria): `prometheus-node-exporter-collectors` package provides `apt_upgrades_pending` and `node_reboot_required` via systemd timer (every 15 min).
+- **AlmaLinux hosts** (sentinella, ntp, home): Custom `/usr/local/bin/dnf-updates-prom.sh` writes `yum_upgrades_pending` and `node_reboot_required` to textfile collector; cron `/etc/cron.d/prom-dnf` (every 15 min); node_exporter flag `--collector.textfile.directory=/var/lib/node_exporter/textfile`.
+- **OPNsense** (gateway): `os-node_exporter` plugin installed; `service node_exporter enable/start`; scraped at `172.16.16.16:9100`.
 
 ### Open Actions
 - Identify devices sending ULA route-info RAs; disable RA on those MACs.
