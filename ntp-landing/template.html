@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTP Server Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0e1a;color:#e2e8f0;min-height:100vh;background-image:linear-gradient(135deg,#0a0e1a 0%,#0f1629 50%,#0a0e1a 100%)}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:#0a0e1a}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#334155}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.container{max-width:1400px;margin:0 auto;padding:20px}
+.card{background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;margin-bottom:20px;transition:all 0.3s ease;animation:fadeIn 0.6s ease-out}
+.card:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,0.3),0 0 30px rgba(59,130,246,0.05);border-color:rgba(255,255,255,0.12)}
+.gradient-text{background:linear-gradient(135deg,#3b82f6,#8b5cf6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header{text-align:center;padding:40px 0 30px}
+.header h1{font-size:3rem;font-weight:800;letter-spacing:-1px}
+.header .subtitle{color:#94a3b8;margin-top:8px;font-size:1.05rem}
+.badges{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.badge{padding:6px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;display:flex;align-items:center;gap:6px}
+.badge-green{background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3)}
+.badge-blue{background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3)}
+.badge-purple{background:rgba(139,92,246,0.15);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3)}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:#10b981;animation:pulse 2s ease-in-out infinite}
+.hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+.hero-card{background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;text-align:center;transition:all 0.3s ease;animation:fadeIn 0.6s ease-out}
+.hero-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,0.3),0 0 30px rgba(59,130,246,0.05);border-color:rgba(255,255,255,0.12)}
+.hero-card .label{font-size:0.78rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.hero-card .value{font-size:1.6rem;font-weight:700;color:#e2e8f0}
+.hero-card .sub{font-size:0.8rem;color:#64748b;margin-top:4px}
+.value-blue{color:#3b82f6 !important}
+.value-green{color:#10b981 !important}
+.value-purple{color:#8b5cf6 !important}
+.value-cyan{color:#06b6d4 !important}
+.value-amber{color:#f59e0b !important}
+.profile-card{border-color:rgba(139,92,246,0.2);background:rgba(139,92,246,0.03)}
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.profile-item{display:flex;align-items:flex-start;gap:12px}
+.profile-icon{width:36px;height:36px;border-radius:10px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.profile-item .title{font-weight:600;color:#e2e8f0;font-size:0.9rem}
+.profile-item .desc{color:#64748b;font-size:0.82rem;margin-top:2px}
+.section-title{font-size:1.3rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-title .icon{font-size:1.2rem}
+.chart-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.chart-tab{padding:6px 16px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;font-size:0.85rem;font-weight:500;transition:all 0.2s}
+.chart-tab:hover{background:rgba(59,130,246,0.1);color:#3b82f6}
+.chart-tab.active{background:rgba(59,130,246,0.2);color:#3b82f6;border-color:rgba(59,130,246,0.4)}
+.charts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.chart-box{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px}
+.chart-box h4{font-size:0.9rem;color:#94a3b8;margin-bottom:12px;font-weight:500}
+.chart-box canvas{width:100%!important;height:200px!important}
+.tracking-card{border-color:rgba(59,130,246,0.2);background:rgba(59,130,246,0.03)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px}
+.stat-item{text-align:center}
+.stat-item .stat-val{font-size:1.4rem;font-weight:700;color:#3b82f6}
+.stat-item .stat-label{font-size:0.78rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px}
+.info-row{display:flex;justify-content:space-between;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.02)}
+.info-row .info-key{color:#64748b;font-size:0.85rem}
+.info-row .info-val{color:#e2e8f0;font-size:0.85rem;font-weight:500;text-align:right}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 12px;font-size:0.78rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid rgba(255,255,255,0.06)}
+td{padding:10px 12px;font-size:0.85rem;border-bottom:1px solid rgba(255,255,255,0.04)}
+tr:hover{background:rgba(255,255,255,0.02)}
+tr.selected{background:rgba(16,185,129,0.08)}
+tr.nts-row{border-left:3px solid rgba(59,130,246,0.5)}
+.nts-badge{background:rgba(59,130,246,0.2);color:#3b82f6;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600}
+.reach-dots{display:inline-flex;gap:3px;align-items:center}
+.reach-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.reach-dot-on{background:#10b981}
+.reach-dot-off{background:rgba(255,255,255,0.1)}
+.status-icon{font-weight:700;font-size:0.95rem}
+.status-star{color:#f59e0b}
+.status-plus{color:#10b981}
+.status-minus{color:#ef4444}
+.status-x{color:#ef4444}
+.resources-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.progress-bar{height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;border-radius:4px;transition:width 0.5s}
+.progress-fill-blue{background:linear-gradient(90deg,#3b82f6,#06b6d4)}
+.progress-fill-purple{background:linear-gradient(90deg,#8b5cf6,#ec4899)}
+.progress-fill-green{background:linear-gradient(90deg,#10b981,#06b6d4)}
+.small-chart canvas{width:100%!important;height:120px!important}
+.footer{text-align:center;padding:30px 0;color:#475569;font-size:0.82rem;border-top:1px solid rgba(255,255,255,0.06);margin-top:30px}
+.footer .updated{margin-bottom:6px;color:#64748b}
+.nts-table th{color:#3b82f6}
+.overflow-x{overflow-x:auto}
+@media(max-width:768px){
+.charts-grid{grid-template-columns:1fr}
+.hero-grid{grid-template-columns:repeat(2,1fr)}
+.header h1{font-size:2rem}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Header -->
+<div class="header">
+<h1 class="gradient-text">NTP Server</h1>
+<p class="subtitle">Maximum Performance Build &middot; {{.System.Hostname}}</p>
+<div class="badges">
+{{if .NTP.Synced}}
+<span class="badge badge-green"><span class="pulse-dot"></span> Synchronized</span>
+{{else}}
+<span class="badge" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3)">Not Synced</span>
+{{end}}
+<span class="badge badge-blue">NTS {{.NTP.NTSCount}}/{{.NTP.TotalSources}} Authenticated</span>
+<span class="badge badge-purple">SCHED_FIFO Priority 99</span>
+</div>
+</div>
+
+<!-- Hero Metrics -->
+<div class="hero-grid">
+<div class="hero-card">
+<div class="label">System Offset</div>
+<div class="value value-blue">{{.NTP.OffsetDisplay}}</div>
+<div class="sub">from reference</div>
+</div>
+<div class="hero-card">
+<div class="label">Frequency Drift</div>
+<div class="value value-purple">{{printf "%.1f" .NTP.FreqPPM}} ppm</div>
+<div class="sub">crystal compensation</div>
+</div>
+<div class="hero-card">
+<div class="label">Root Delay</div>
+<div class="value value-cyan">{{.NTP.RootDelay}}</div>
+<div class="sub">to stratum-1</div>
+</div>
+<div class="hero-card">
+<div class="label">Root Dispersion</div>
+<div class="value value-amber">{{.NTP.RootDisp}}</div>
+<div class="sub">error bound</div>
+</div>
+<div class="hero-card">
+<div class="label">Update Interval</div>
+<div class="value value-green">{{.NTP.UpdateInt}}</div>
+<div class="sub">polling period</div>
+</div>
+<div class="hero-card">
+<div class="label">Active Sources</div>
+<div class="value">{{.NTP.OnlineSources}}/{{.NTP.TotalSources}}</div>
+<div class="sub">{{.NTP.NTSCount}} NTS-authenticated</div>
+</div>
+</div>
+
+<!-- Performance Profile -->
+<div class="card profile-card">
+<div class="section-title"><span class="icon">&#9889;</span> <span class="gradient-text">Performance Profile</span></div>
+<div class="profile-grid">
+<div class="profile-item">
+<div class="profile-icon">&#127760;</div>
+<div>
+<div class="title">Upstream Sources</div>
+<div class="desc">{{.NTP.TotalSources}} active, {{.NTP.NTSCount}} NTS-authenticated</div>
+</div>
+</div>
+<div class="profile-item">
+<div class="profile-icon">&#9201;</div>
+<div>
+<div class="title">System Offset</div>
+<div class="desc">{{.NTP.OffsetDisplay}}, Nanosecond resolution</div>
+</div>
+</div>
+<div class="profile-item">
+<div class="profile-icon">&#128259;</div>
+<div>
+<div class="title">Update Interval</div>
+<div class="desc">{{.NTP.UpdateInt}}, Polling 2-64s</div>
+</div>
+</div>
+<div class="profile-item">
+<div class="profile-icon">&#128200;</div>
+<div>
+<div class="title">Frequency</div>
+<div class="desc">{{.NTP.FreqDisplay}}</div>
+</div>
+</div>
+<div class="profile-item">
+<div class="profile-icon">&#9881;</div>
+<div>
+<div class="title">Scheduler</div>
+<div class="desc">SCHED_FIFO 99, Real-time, OOM-immune</div>
+</div>
+</div>
+<div class="profile-item">
+<div class="profile-icon">&#128268;</div>
+<div>
+<div class="title">Kernel Tuning</div>
+<div class="desc">16 MB Buffers, Busy-poll, low-latency</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- NTP Charts -->
+<div class="card">
+<div class="section-title"><span class="icon">&#128202;</span> <span class="gradient-text">NTP Performance Charts</span></div>
+<div class="chart-tabs" id="chartTabs">
+<div class="chart-tab" data-range="1h">1h</div>
+<div class="chart-tab" data-range="6h">6h</div>
+<div class="chart-tab active" data-range="24h">24h</div>
+<div class="chart-tab" data-range="7d">7d</div>
+<div class="chart-tab" data-range="30d">30d</div>
+</div>
+<div class="charts-grid">
+<div class="chart-box">
+<h4>Clock Offset (&mu;s)</h4>
+<canvas id="chartOffset"></canvas>
+</div>
+<div class="chart-box">
+<h4>Frequency Drift (ppm)</h4>
+<canvas id="chartFreq"></canvas>
+</div>
+<div class="chart-box">
+<h4>Error Budget (&mu;s)</h4>
+<canvas id="chartError"></canvas>
+</div>
+<div class="chart-box">
+<h4>PLL Time Constant</h4>
+<canvas id="chartPLL"></canvas>
+</div>
+</div>
+</div>
+
+<!-- Chrony Tracking -->
+<div class="card tracking-card">
+<div class="section-title"><span class="icon">&#128301;</span> <span class="gradient-text">Chrony Tracking</span></div>
+<div class="stats-grid">
+<div class="stat-item">
+<div class="stat-val">{{.NTP.Stratum}}</div>
+<div class="stat-label">Stratum</div>
+</div>
+<div class="stat-item">
+<div class="stat-val">{{.NTP.OffsetDisplay}}</div>
+<div class="stat-label">System Offset</div>
+</div>
+<div class="stat-item">
+<div class="stat-val">{{printf "%.1f" .NTP.FreqPPM}} ppm</div>
+<div class="stat-label">Frequency</div>
+</div>
+<div class="stat-item">
+<div class="stat-val">{{.NTP.TotalSources}}</div>
+<div class="stat-label">Sources</div>
+</div>
+<div class="stat-item">
+<div class="stat-val">{{.NTP.NTSCount}}</div>
+<div class="stat-label">NTS Sources</div>
+</div>
+<div class="stat-item">
+<div class="stat-val">{{.NTP.RMSOffset}}</div>
+<div class="stat-label">RMS Offset</div>
+</div>
+</div>
+<div class="info-grid">
+<div class="info-row"><span class="info-key">Reference ID</span><span class="info-val">{{.NTP.RefID}}</span></div>
+<div class="info-row"><span class="info-key">Root Delay</span><span class="info-val">{{.NTP.RootDelay}}</span></div>
+<div class="info-row"><span class="info-key">Root Dispersion</span><span class="info-val">{{.NTP.RootDisp}}</span></div>
+<div class="info-row"><span class="info-key">Update Interval</span><span class="info-val">{{.NTP.UpdateInt}}</span></div>
+<div class="info-row"><span class="info-key">System Time</span><span class="info-val">{{.NTP.SystemTime}}</span></div>
+<div class="info-row"><span class="info-key">Last Offset</span><span class="info-val">{{.NTP.LastOffset}}</span></div>
+<div class="info-row"><span class="info-key">Residual Freq</span><span class="info-val">{{.NTP.ResidualFreq}}</span></div>
+<div class="info-row"><span class="info-key">Skew</span><span class="info-val">{{.NTP.Skew}}</span></div>
+</div>
+</div>
+
+<!-- Time Sources Table -->
+<div class="card">
+<div class="section-title"><span class="icon">&#128225;</span> <span class="gradient-text">Time Sources</span> <span style="font-size:0.85rem;color:#64748b;font-weight:400;margin-left:8px">{{.NTP.TotalSources}} active, {{.NTP.NTSCount}} NTS</span></div>
+<div class="overflow-x">
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Source</th>
+<th>Auth</th>
+<th>St</th>
+<th>Poll</th>
+<th>Reach</th>
+<th>LastRx</th>
+<th>Offset</th>
+<th>Freq Skew</th>
+<th>Std Dev</th>
+</tr>
+</thead>
+<tbody>
+{{range .NTP.Sources}}
+<tr class="{{if .Selected}}selected{{end}} {{if .NTS}}nts-row{{end}}">
+<td><span class="status-icon {{if eq .StatusIcon "*"}}status-star{{else if eq .StatusIcon "+"}}status-plus{{else if eq .StatusIcon "-"}}status-minus{{else if eq .StatusIcon "x"}}status-x{{end}}">{{if eq .StatusIcon "*"}}&#9733;{{else}}{{.StatusIcon}}{{end}}</span></td>
+<td style="font-weight:500">{{.Name}}</td>
+<td>{{if .NTS}}<span class="nts-badge">NTS</span>{{else}}-{{end}}</td>
+<td>{{.Stratum}}</td>
+<td>{{.Poll}}</td>
+<td><span class="reach-dots">{{range .ReachBits}}{{if eq . "1"}}<span class="reach-dot reach-dot-on"></span>{{else}}<span class="reach-dot reach-dot-off"></span>{{end}}{{end}}</span></td>
+<td>{{.LastRx}}</td>
+<td>{{.Offset}}</td>
+<td>{{.FreqSkew}}</td>
+<td>{{.StdDev}}</td>
+</tr>
+{{end}}
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- NTS Authentication -->
+{{if .NTP.NTSDetails}}
+<div class="card">
+<div class="section-title"><span class="icon">&#128274;</span> <span class="gradient-text">NTS Authentication</span></div>
+<div class="overflow-x">
+<table class="nts-table">
+<thead>
+<tr>
+<th>Server</th>
+<th>Key Length</th>
+<th>Last Auth</th>
+<th>Cookies</th>
+<th>Cookie Length</th>
+</tr>
+</thead>
+<tbody>
+{{range .NTP.NTSDetails}}
+<tr>
+<td style="font-weight:500;color:#3b82f6">{{.Name}}</td>
+<td>{{.KeyLength}}</td>
+<td>{{.LastAuth}}</td>
+<td>{{.Cookies}}</td>
+<td>{{.CookieLength}}</td>
+</tr>
+{{end}}
+</tbody>
+</table>
+</div>
+</div>
+{{end}}
+
+<!-- System Resources -->
+<div class="card">
+<div class="section-title"><span class="icon">&#128187;</span> <span class="gradient-text">System Resources</span></div>
+<div class="resources-grid">
+<div class="card" style="margin-bottom:0">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span style="font-weight:600">CPU Usage</span>
+<span style="font-size:1.3rem;font-weight:700;color:#3b82f6">{{printf "%.1f" .System.CPUPercent}}%</span>
+</div>
+<div class="progress-bar">
+<div class="progress-fill progress-fill-blue" style="width:{{printf "%.1f" .System.CPUPercent}}%"></div>
+</div>
+<div class="small-chart" style="margin-top:12px">
+<canvas id="chartCPU"></canvas>
+</div>
+</div>
+<div class="card" style="margin-bottom:0">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span style="font-weight:600">Memory Usage</span>
+<span style="font-size:1.3rem;font-weight:700;color:#8b5cf6">{{printf "%.1f" .System.MemPercent}}%</span>
+</div>
+<div class="progress-bar">
+<div class="progress-fill progress-fill-purple" style="width:{{printf "%.1f" .System.MemPercent}}%"></div>
+</div>
+<div class="small-chart" style="margin-top:12px">
+<canvas id="chartMem"></canvas>
+</div>
+</div>
+<div class="card" style="margin-bottom:0">
+<div style="font-weight:600;margin-bottom:12px">System Info</div>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:0.85rem">
+<div style="display:flex;justify-content:space-between"><span style="color:#64748b">Uptime</span><span>{{.System.Uptime}}</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#64748b">OS</span><span>{{.System.OS}}</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#64748b">Kernel</span><span>{{.System.Kernel}}</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#64748b">Disk</span><span>{{.System.DiskUsed}} / {{.System.DiskTotal}} ({{.System.DiskPercent}})</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#64748b">Load Average</span><span>{{.System.LoadAvg}}</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+<div class="updated">Last updated: {{.UpdatedAt}}</div>
+<div>Chrony 4.6.1 + NTS | AlmaLinux 10 | SCHED_FIFO Priority 99</div>
+</div>
+
+</div>
+
+<script>
+var initialCharts = {{.ChartsJSON}};
+var cpuData = {{.CPUJSON}};
+var memData = {{.MemJSON}};
+
+var chartInstances = {};
+
+function createGradient(ctx, color) {
+    var gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, color.replace("1)", "0.3)").replace("rgb", "rgba"));
+    gradient.addColorStop(1, color.replace("1)", "0.01)").replace("rgb", "rgba"));
+    return gradient;
+}
+
+function hexToRgba(hex, alpha) {
+    var r = parseInt(hex.slice(1, 3), 16);
+    var g = parseInt(hex.slice(3, 5), 16);
+    var b = parseInt(hex.slice(5, 7), 16);
+    return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+}
+
+function makeGradientFill(ctx, hex) {
+    var gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, hexToRgba(hex, 0.3));
+    gradient.addColorStop(1, hexToRgba(hex, 0.01));
+    return gradient;
+}
+
+function createChart(canvasId, label, data, color, stepped) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return null;
+    var ctx = canvas.getContext("2d");
+
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+    }
+
+    var labels = [];
+    var values = [];
+    if (data && data.length) {
+        for (var i = 0; i < data.length; i++) {
+            labels.push(data[i].time);
+            values.push(data[i].value);
+        }
+    }
+
+    var gradientFill = makeGradientFill(ctx, color);
+
+    var config = {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: values,
+                borderColor: color,
+                backgroundColor: gradientFill,
+                fill: true,
+                tension: stepped ? 0 : 0.3,
+                pointRadius: 0,
+                borderWidth: 2,
+                stepped: stepped ? "middle" : false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    ticks: { color: "#475569", maxTicksLimit: 8, font: { size: 10 } },
+                    grid: { color: "rgba(255,255,255,0.05)" }
+                },
+                y: {
+                    ticks: { color: "#475569", font: { size: 10 } },
+                    grid: { color: "rgba(255,255,255,0.05)" }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: "index"
+            }
+        }
+    };
+
+    chartInstances[canvasId] = new Chart(ctx, config);
+    return chartInstances[canvasId];
+}
+
+function createErrorChart(canvasId, maxErrData, estErrData) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return null;
+    var ctx = canvas.getContext("2d");
+
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+    }
+
+    var labels = [];
+    var maxVals = [];
+    var estVals = [];
+
+    var src = maxErrData && maxErrData.length ? maxErrData : estErrData;
+    if (src && src.length) {
+        for (var i = 0; i < src.length; i++) {
+            labels.push(src[i].time);
+        }
+    }
+    if (maxErrData && maxErrData.length) {
+        for (var i = 0; i < maxErrData.length; i++) {
+            maxVals.push(maxErrData[i].value);
+        }
+    }
+    if (estErrData && estErrData.length) {
+        for (var i = 0; i < estErrData.length; i++) {
+            estVals.push(estErrData[i].value);
+        }
+    }
+
+    var maxGrad = makeGradientFill(ctx, "#f59e0b");
+    var estGrad = makeGradientFill(ctx, "#ef4444");
+
+    var config = {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Max Error",
+                    data: maxVals,
+                    borderColor: "#f59e0b",
+                    backgroundColor: maxGrad,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 2
+                },
+                {
+                    label: "Est Error",
+                    data: estVals,
+                    borderColor: "#ef4444",
+                    backgroundColor: estGrad,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: { color: "#94a3b8", font: { size: 10 } }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: "#475569", maxTicksLimit: 8, font: { size: 10 } },
+                    grid: { color: "rgba(255,255,255,0.05)" }
+                },
+                y: {
+                    ticks: { color: "#475569", font: { size: 10 } },
+                    grid: { color: "rgba(255,255,255,0.05)" }
+                }
+            },
+            interaction: { intersect: false, mode: "index" }
+        }
+    };
+
+    chartInstances[canvasId] = new Chart(ctx, config);
+    return chartInstances[canvasId];
+}
+
+function renderCharts(data) {
+    createChart("chartOffset", "Clock Offset (us)", data.offset, "#3b82f6", false);
+    createChart("chartFreq", "Frequency Drift (ppm)", data.freq, "#8b5cf6", false);
+    createErrorChart("chartError", data.maxErr, data.estErr);
+    createChart("chartPLL", "PLL Time Constant", data.pll, "#06b6d4", true);
+}
+
+function updateCharts(range_) {
+    fetch("/api/charts?range=" + range_)
+        .then(function(resp) { return resp.json(); })
+        .then(function(data) {
+            renderCharts(data);
+        });
+}
+
+function createSmallChart(canvasId, data, color) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return null;
+    var ctx = canvas.getContext("2d");
+
+    var labels = [];
+    var values = [];
+    if (data && data.length) {
+        for (var i = 0; i < data.length; i++) {
+            labels.push(data[i].time);
+            values.push(data[i].value);
+        }
+    }
+
+    var gradientFill = makeGradientFill(ctx, color);
+
+    return new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                borderColor: color,
+                backgroundColor: gradientFill,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 1.5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: {
+                    ticks: { color: "#475569", maxTicksLimit: 6, font: { size: 9 } },
+                    grid: { color: "rgba(255,255,255,0.03)" }
+                },
+                y: {
+                    ticks: { color: "#475569", font: { size: 9 } },
+                    grid: { color: "rgba(255,255,255,0.03)" }
+                }
+            }
+        }
+    });
+}
+
+// Initialize charts on load
+document.addEventListener("DOMContentLoaded", function() {
+    renderCharts(initialCharts);
+    createSmallChart("chartCPU", cpuData, "#3b82f6");
+    createSmallChart("chartMem", memData, "#8b5cf6");
+});
+
+// Tab click handler
+var tabs = document.querySelectorAll(".chart-tab");
+for (var i = 0; i < tabs.length; i++) {
+    tabs[i].addEventListener("click", function() {
+        for (var j = 0; j < tabs.length; j++) {
+            tabs[j].classList.remove("active");
+        }
+        this.classList.add("active");
+        updateCharts(this.getAttribute("data-range"));
+    });
+}
+
+// Auto-refresh every 60 seconds
+setTimeout(function() {
+    window.location.reload();
+}, 60000);
+</script>
+</body>
+</html>
