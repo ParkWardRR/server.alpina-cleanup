@@ -91,9 +91,19 @@ ssh root@homeassistant.local                   # Home Assistant (HAOS)
 - Access: http://komga.alpina (landing) and :25600 UI; SSH `alfa@komga.alpina`.
 - Maintenance: reboot pending if new kernel installed; Komga auto-scans hourly; container restart policy `unless-stopped`.
 
-### NTP (AlmaLinux 10)
-- Chrony 4.6.1; 8 upstream sources; landing page at http://ntp.alpina; node_exporter on 9100.
-- Backup: `/var/backups/ntp/pre-remediation-20260127_132804.tar.gz`.
+### NTP (AlmaLinux 10) — Maximum Performance Build
+- **Chrony 4.6.1** with NTS support; landing page at http://ntp.alpina; node_exporter on 9100.
+- **33 upstream sources:** 7 NTS-authenticated (Cloudflare, Netnod, 3x PTB Germany, 2x Glypnod) + 5x Google + 6x NIST + Facebook + Apple + Microsoft + 10 from pool
+- **Polling:** minpoll 1 (2s) for Google/Meta, minpoll 2 (4s) for others; maxpoll 5-6 (32-64s)
+- **Update interval:** ~6.7s (was 32.6s)
+- **System accuracy:** ~7μs last offset, ~36μs system time offset (stratum 2)
+- **Real-time scheduling:** SCHED_FIFO priority 99, nice -20, OOM-immune, memory-locked
+- **Kernel tuning:** `/etc/sysctl.d/99-ntp-performance.conf` (16MB socket buffers, busy-poll, low-latency)
+- **Systemd override:** `/etc/systemd/system/chronyd.service.d/performance.conf`
+- **Clock discipline:** makestep 0.1s/5, rtcfile + rtcautotrim 30, maxupdateskew 5.0, maxdistance 0.5
+- **Leap seconds:** right/UTC timezone, slew mode, maxslewrate 1000 ppm
+- **Client access:** 172.16.0.0/16, 10.0.0.0/8, 2603:8001:7400::/44, fe80::/10; rate-limited
+- **Backups:** `/var/backups/ntp/pre-remediation-20260127_132804.tar.gz`, `/etc/chrony.conf.bak.20260206`
 
 ### Pi-hole (v6)
 - Upstreams: Quad9, Cloudflare, Google (IPv4+IPv6); `listeningMode=ALL`; `blockingmode=null`.
